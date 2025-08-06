@@ -4,7 +4,7 @@ A web platform designed to connect students within the Cornell community for pee
 
 ## Features
 
-- **User Authentication**: Cornell SSO login
+- **User Authentication**: Cornell email login
 - **Post Management**: Create "Teach Me" and "I Can Teach" posts with tags and availability
 - **Search & Discovery**: Filter posts by type, subject, course codes, and availability
 - **Scheduling**: Calendar-based session scheduling with confirmation flows

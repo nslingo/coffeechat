@@ -1,0 +1,56 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { auth } from './auth/auth.js';
+import { authRouter } from './routes/auth.js';
+import { usersRouter } from './routes/users.js';
+import { postsRouter } from './routes/posts.js';
+import { sessionsRouter } from './routes/sessions.js';
+import { messagesRouter } from './routes/messages.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/auth', auth.handler);
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/sessions', sessionsRouter);
+app.use('/api/messages', messagesRouter);
+
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', message: 'CoffeeChat API is running' });
+});
+
+app.get('/api', (_req, res) => {
+  res.json({
+    message: 'Welcome to CoffeeChat API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      posts: '/api/posts',
+      sessions: '/api/sessions',
+      messages: '/api/messages'
+    }
+  });
+});
+
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📱 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📚 API documentation: http://localhost:${PORT}/api`);
+});

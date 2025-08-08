@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { authClient } from './lib/auth-client';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -8,15 +8,12 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 
 function App() {
-  // TODO: Replace with proper auth state management
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState('John Smith');
+  const { data: session, isPending } = authClient.useSession();
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserName('');
-    // TODO: Clear auth tokens/session
-  };
+  if (isPending) return <div>Loading...</div>;
+
+  const isAuthenticated = !!session;
+  const userName = session?.user?.name || '';
 
   const router = createBrowserRouter([
     {
@@ -25,7 +22,9 @@ function App() {
         <Layout 
           isAuthenticated={isAuthenticated}
           userName={userName}
-          onLogout={handleLogout}
+          onLogout={async () => {
+            await authClient.signOut();
+          }}
         />
       ),
       children: [

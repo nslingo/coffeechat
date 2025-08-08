@@ -58,33 +58,32 @@ router.post('/resend-verification', async (req, res, next) => {
   }
 });
 
-router.get('/session', async (req, res, next): Promise<void> => {
+router.get('/session', async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    const sessionToken = authHeader?.replace('Bearer ', '');
-    
-    if (!sessionToken) {
-      res.status(401).json({ error: 'No authorization token provided' });
+    const headersObj = new Headers();
+
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (Array.isArray(value)) {
+        value.forEach(v => headersObj.append(key, v));
+      } else if (value !== undefined) {
+        headersObj.append(key, value);
+      }
+    }
+
+    const session = await auth.api.getSession({
+      headers: headersObj
+    });
+
+    if (!session) {
+      res.status(401).json({ error: 'No valid session found' });
       return;
     }
 
-    // For development, just return a mock session for valid tokens
-    // TODO: Implement proper session validation with BetterAuth
-    res.json({
-      user: {
-        id: '1',
-        email: 'test@cornell.edu',
-        name: 'Test User',
-        emailVerified: true
-      },
-      session: {
-        id: 'session-1',
-        token: sessionToken
-      }
-    });
+    res.json(session);
   } catch (error) {
     next(error);
   }
 });
+
 
 export { router as authRouter };

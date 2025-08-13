@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { auth } from './auth/auth.js';
-import { authRouter } from './routes/auth.js';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './lib/auth.js';
 import { usersRouter } from './routes/users.js';
 import { postsRouter } from './routes/posts.js';
 import { sessionsRouter } from './routes/sessions.js';
@@ -19,11 +19,11 @@ app.use(cors({
   credentials: true
 }));
 
+app.all("/api/auth/{*any}", toNodeHandler(auth));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/auth', auth.handler);
-app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/sessions', sessionsRouter);

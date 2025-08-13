@@ -1,6 +1,3 @@
-// CoffeeChat Database Schema
-// Optimized for Cornell peer-to-peer learning platform
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,40 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// AUTH MODELS (BetterAuth Compatible)
-// ============================================================================
-
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // CoffeeChat Profile
-  displayName   String?
-  bio           String?   @db.Text
-  profilePicture String?
-  
-  // Calculated rating fields (updated via Reviews)
-  averageRating Float     @default(0)
-  totalReviews  Int       @default(0)
-  
-  // Relations
-  accounts           Account[]
-  sessions           Session[]
-  
-  // CoffeeChat Relations
-  postsCreated       Post[]               @relation("PostAuthor")
-  reviewsGiven       Review[]             @relation("Reviewer")  
-  reviewsReceived    Review[]             @relation("Reviewee")
-  sessionsAsTeacher  LearningSession[]    @relation("Teacher")
-  sessionsAsLearner  LearningSession[]    @relation("Learner")
-  messagesSent       Message[]            @relation("MessageSender")
-  messagesReceived   Message[]            @relation("MessageRecipient")
+  id                String            @id @default(cuid())
+  name              String
+  email             String            @unique
+  emailVerified     Boolean           @default(false)
+  image             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  displayName       String?
+  bio               String?
+  profilePicture    String?
+  averageRating     Float             @default(0)
+  totalReviews      Int               @default(0)
+  accounts          Account[]
+  sessionsAsLearner LearningSession[] @relation("Learner")
+  sessionsAsTeacher LearningSession[] @relation("Teacher")
+  messagesReceived  Message[]         @relation("MessageRecipient")
+  messagesSent      Message[]         @relation("MessageSender")
+  postsCreated      Post[]            @relation("PostAuthor")
+  reviewsReceived   Review[]          @relation("Reviewee")
+  reviewsGiven      Review[]          @relation("Reviewer")
+  sessions          Session[]
 
   @@index([email])
   @@index([emailVerified])
@@ -51,83 +36,71 @@ model User {
 }
 
 model Account {
-  id                String    @id @default(cuid())
-  userId            String    @map("user_id")
-  type              String    // oauth, email
-  provider          String    // better-auth, google, etc
-  providerAccountId String    @map("provider_account_id")
-  refreshToken      String?   @map("refresh_token") @db.Text
-  accessToken       String?   @map("access_token") @db.Text
-  expiresAt         Int?      @map("expires_at")
-  tokenType         String?   @map("token_type")
+  id                String   @id @default(cuid())
+  accountId         String   @map("account_id")
+  providerId        String   @map("provider_id")
+  userId            String   @map("user_id")
+  accessToken       String?  @map("access_token")
+  refreshToken      String?  @map("refresh_token")
+  idToken           String?  @map("id_token")
+  accessTokenExpiresAt DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
   scope             String?
-  idToken           String?   @map("id_token") @db.Text
-  sessionState      String?   @map("session_state")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  password          String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@unique([providerId, accountId])
   @@index([userId])
   @@map("accounts")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expiresAt    DateTime @map("expires_at")
-  ipAddress    String?  @map("ip_address")
-  userAgent    String?  @map("user_agent")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
 }
 
-model VerificationToken {
+model Verification {
   id         String   @id @default(cuid())
-  identifier String   // email for email verification
-  token      String   @unique
+  identifier String
+  value      String
   expiresAt  DateTime @map("expires_at")
   createdAt  DateTime @default(now()) @map("created_at")
-  
-  @@unique([identifier, token])
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
   @@index([expiresAt])
-  @@map("verification_tokens")
+  @@map("verification")
 }
 
-// ============================================================================
-// COFFEECHAT CORE MODELS  
-// ============================================================================
-
 model Post {
-  id          String      @id @default(cuid())
-  title       String      @db.VarChar(200)
-  description String      @db.Text
-  type        PostType    // TEACH or LEARN
-  category    PostCategory // CAREER, COURSEWORK, HOBBIES
-  subject     String      @db.VarChar(100)
-  courseCode  String?     @db.VarChar(20) // e.g. "CS2110", "ECON1110" 
-  tags        String[]    // searchable tags
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  
-  // Author
-  authorId    String      @map("author_id")
-  author      User        @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  
-  // Availability slots
+  id           String             @id @default(cuid())
+  title        String             @db.VarChar(200)
+  description  String
+  type         PostType
+  category     PostCategory
+  subject      String             @db.VarChar(100)
+  courseCode   String?            @db.VarChar(20)
+  tags         String[]
+  isActive     Boolean            @default(true)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  authorId     String             @map("author_id")
+  sessions     LearningSession[]
   availability PostAvailability[]
-  
-  // Sessions scheduled from this post
-  sessions    LearningSession[]
+  author       User               @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([type])
   @@index([category])
@@ -142,35 +115,30 @@ model Post {
 model PostAvailability {
   id       String @id @default(cuid())
   postId   String @map("post_id")
-  day      String @db.VarChar(10) // MONDAY, TUESDAY, etc
-  timeSlot String @db.VarChar(20) // "9:00-10:00", "14:00-15:30"
-  
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
+  day      String @db.VarChar(10)
+  timeSlot String @db.VarChar(20)
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@index([postId])
   @@map("post_availability")
 }
 
 model LearningSession {
-  id             String        @id @default(cuid())
-  teacherId      String        @map("teacher_id")
-  learnerId      String        @map("learner_id")
-  postId         String        @map("post_id")
-  scheduledAt    DateTime      @map("scheduled_at")
-  duration       Int           // minutes
-  location       String?       @db.VarChar(200)
-  notes          String?       @db.Text
-  status         SessionStatus @default(SCHEDULED)
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-  
-  // Relations
-  teacher User @relation("Teacher", fields: [teacherId], references: [id])
-  learner User @relation("Learner", fields: [learnerId], references: [id])
-  post    Post @relation(fields: [postId], references: [id])
-  
-  // Session outcome
-  reviews Review[]
+  id          String        @id @default(cuid())
+  teacherId   String        @map("teacher_id")
+  learnerId   String        @map("learner_id")
+  postId      String        @map("post_id")
+  scheduledAt DateTime      @map("scheduled_at")
+  endAt       DateTime      @map("end_at")
+  location    String?       @db.VarChar(200)
+  notes       String?
+  status      SessionStatus @default(SCHEDULED)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  learner     User          @relation("Learner", fields: [learnerId], references: [id])
+  post        Post          @relation(fields: [postId], references: [id])
+  teacher     User          @relation("Teacher", fields: [teacherId], references: [id])
+  reviews     Review[]
 
   @@index([teacherId])
   @@index([learnerId])
@@ -181,20 +149,17 @@ model LearningSession {
 }
 
 model Review {
-  id        String  @id @default(cuid())
-  sessionId String  @map("session_id")
-  reviewerId String @map("reviewer_id")
-  revieweeId String @map("reviewee_id")
-  rating    Int     // 1-5 stars
-  feedback  String? @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  session  LearningSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  reviewer User            @relation("Reviewer", fields: [reviewerId], references: [id])
-  reviewee User            @relation("Reviewee", fields: [revieweeId], references: [id])
-  
-  // One review per person per session
+  id         String          @id @default(cuid())
+  sessionId  String          @map("session_id")
+  reviewerId String          @map("reviewer_id")
+  revieweeId String          @map("reviewee_id")
+  rating     Int             @db.SmallInt // 1-5 rating constraint
+  feedback   String?
+  createdAt  DateTime        @default(now()) @map("created_at")
+  reviewee   User            @relation("Reviewee", fields: [revieweeId], references: [id])
+  reviewer   User            @relation("Reviewer", fields: [reviewerId], references: [id])
+  session    LearningSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@unique([sessionId, reviewerId])
   @@index([revieweeId])
   @@index([rating])
@@ -203,16 +168,14 @@ model Review {
 
 model Message {
   id          String   @id @default(cuid())
-  content     String   @db.Text
+  content     String
   senderId    String   @map("sender_id")
   recipientId String   @map("recipient_id")
   isRead      Boolean  @default(false) @map("is_read")
   createdAt   DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  sender    User @relation("MessageSender", fields: [senderId], references: [id])
-  recipient User @relation("MessageRecipient", fields: [recipientId], references: [id])
-  
+  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+
   @@index([senderId])
   @@index([recipientId])
   @@index([createdAt])
@@ -220,22 +183,18 @@ model Message {
   @@map("messages")
 }
 
-// ============================================================================
-// ENUMS
-// ============================================================================
-
 enum PostType {
   TEACH
   LEARN
-  
+
   @@map("post_type")
 }
 
 enum PostCategory {
   CAREER
-  COURSEWORK  
+  COURSEWORK
   HOBBIES
-  
+
   @@map("post_category")
 }
 
@@ -244,6 +203,6 @@ enum SessionStatus {
   COMPLETED
   CANCELLED
   NO_SHOW
-  
+
   @@map("session_status")
 }

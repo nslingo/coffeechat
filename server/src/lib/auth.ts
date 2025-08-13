@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
+import { emailService } from './email.js';
 
 const prisma = new PrismaClient();
 
@@ -10,37 +11,23 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: false, // Set to true for production
     autoSignIn: true,
-    sendVerificationEmail: async (data: any) => {
-      console.log('🔐 Email verification requested for:', data.user.email);
-      console.log('🔗 Verification URL:', data.url);
-      
-      // TODO: Replace with actual email service
-      console.log(`
-📧 EMAIL WOULD BE SENT:
-To: ${data.user.email}
-Subject: Verify your CoffeeChat account
-      
-Hi ${data.user.name}!
-      
-Welcome to CoffeeChat! Click the link below to verify your Cornell email:
-${data.url}
-      
-⚠️ Can't find this email?
-1. Check your Junk/Spam folder
-2. Add noreply@coffeechat.app to your contacts  
-3. Search for "CoffeeChat" in all folders
-      
-Still having trouble? Reply to this email for help.
-      
-Best,
-The CoffeeChat Team
-      `);
-    },
-    sendResetPassword: async (data) => {
-      console.log('🔐 Password reset requested for:', data.user.email);
-      console.log('🔗 Reset URL:', data.url);
+    sendResetPassword: async ({user, url, token}, request) => {
+      console.log('🔐 Password reset requested for:', user.email);
+      await emailService.sendPasswordResetEmail(user, url);
+    }
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url, token }, request) => {
+      // Server-side Cornell email validation
+      if (!user.email.toLowerCase().endsWith('@cornell.edu')) {
+        throw new Error('Registration is limited to Cornell University email addresses (@cornell.edu)');
+      }
+
+      console.log('🔐 Email verification requested for:', user.email);
+      await emailService.sendVerificationEmail(user, url);
     }
   },
   session: {

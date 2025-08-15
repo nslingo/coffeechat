@@ -11,8 +11,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Set to true for production
-    autoSignIn: true,
+    requireEmailVerification: true, // Set to true for production
+    autoSignIn: false,
     sendResetPassword: async ({user, url, token}, request) => {
       console.log('🔐 Password reset requested for:', user.email);
       await emailService.sendPasswordResetEmail(user, url);
@@ -28,6 +28,10 @@ export const auth = betterAuth({
 
       console.log('🔐 Email verification requested for:', user.email);
       await emailService.sendVerificationEmail(user, url);
+    },
+    async afterEmailVerification(user, request) {
+      console.log(`✅ Email successfully verified for: ${user.email}`);
+      // Could add additional logic here like welcome emails, analytics, etc.
     }
   },
   session: {
@@ -61,5 +65,8 @@ export const auth = betterAuth({
     }
   },
   secret: process.env.BETTER_AUTH_SECRET || 'your-secret-key-change-in-production',
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001'
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
+  trustedOrigins: [
+    process.env.CLIENT_URL || 'http://localhost:5173'
+  ]
 });

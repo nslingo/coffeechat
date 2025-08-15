@@ -59,7 +59,7 @@ model Account {
 model Session {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  token     String
+  token     String   @unique
   expiresAt DateTime @map("expires_at")
   ipAddress String?  @map("ip_address")
   userAgent String?  @map("user_agent")

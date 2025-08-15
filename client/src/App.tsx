@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 
@@ -35,6 +36,10 @@ function App() {
         {
           path: 'login',
           element: isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        },
+        {
+          path: 'signup',
+          element: isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
         },
         {
           path: 'dashboard',

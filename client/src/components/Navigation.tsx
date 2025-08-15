@@ -80,7 +80,7 @@ const Navigation = ({ isAuthenticated, userName, onLogout }: NavigationProps) =>
                   Sign In
                 </Link>
                 <Link
-                  to="/login"
+                  to="/signup"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
                   Get Started
@@ -146,7 +146,7 @@ const Navigation = ({ isAuthenticated, userName, onLogout }: NavigationProps) =>
                       Sign In
                     </Link>
                     <Link
-                      to="/login"
+                      to="/signup"
                       className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-base font-medium text-center"
                       onClick={() => setIsMenuOpen(false)}
                     >

@@ -1,31 +1,32 @@
 import { useState } from 'react';
 import { authClient } from '../lib/auth-client';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-const Login = () => {
+const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setMessage('');
 
     try {
-      const { data, error } = await authClient.signIn.email({
+      const { data, error } = await authClient.signUp.email({
+        name: name.trim(),
         email: email.trim(),
         password: password,
-        rememberMe: true,
       });
 
       if (error) {
-        setError(error.message || 'Sign in failed');
+        setError(error.message || 'Sign up failed');
       } else {
-        // Success! Redirect to dashboard
-        navigate('/dashboard');
+        setMessage('Account created! Please check your Cornell email to verify your account.');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -40,10 +41,10 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Welcome back to CoffeeChat
+            Join the Cornell learning community
           </p>
         </div>
 
@@ -52,9 +53,31 @@ const Login = () => {
             {error}
           </div>
         )}
+
+        {message && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+            {message}
+          </div>
+        )}
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Enter your full name"
+              />
+            </div>
+            
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Cornell Email
@@ -88,7 +111,11 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Enter your password"
+                minLength={8}
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Password must be at least 8 characters long
+              </p>
             </div>
           </div>
 
@@ -104,20 +131,20 @@ const Login = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing In...
+                  Creating Account...
                 </span>
               ) : (
-                'Sign In'
+                'Create Account'
               )}
             </button>
           </div>
 
           <div className="text-center">
             <Link
-              to="/signup"
+              to="/login"
               className="text-blue-600 hover:text-blue-500 text-sm font-medium"
             >
-              Don't have an account? Sign up
+              Already have an account? Sign in
             </Link>
           </div>
         </form>
@@ -126,4 +153,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

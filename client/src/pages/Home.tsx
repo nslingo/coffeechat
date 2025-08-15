@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Home = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -9,9 +11,9 @@ const Home = () => {
           Connect with Cornell students for peer-to-peer learning
         </p>
         <div className="flex justify-center gap-4">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+          <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
             Get Started
-          </button>
+          </Link>
           <button className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium">
             Learn More
           </button>

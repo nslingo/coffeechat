@@ -23,24 +23,19 @@ class EmailService {
   }
 
   async sendEmail(data: EmailData): Promise<void> {
-    try {
-      const info = await this.transporter.sendMail({
-        from: `"CoffeeChat" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-        to: data.to,
-        subject: data.subject,
-        text: data.text,
-        html: data.html,
-      });
+    const info = await this.transporter.sendMail({
+      from: `"CoffeeChat" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+      to: data.to,
+      subject: data.subject,
+      text: data.text,
+      html: data.html,
+    });
 
-      console.log('📧 Email sent:', info.messageId);
-      
-      // For Ethereal, log the preview URL
-      if (process.env.NODE_ENV === 'development' && info.messageId) {
-        console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
-      }
-    } catch (error) {
-      console.error('❌ Email sending failed:', error);
-      throw error;
+    console.log('📧 Email sent:', info.messageId);
+    
+    // For Ethereal, log the preview URL
+    if (process.env.NODE_ENV === 'development' && info.messageId) {
+      console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
     }
   }
 

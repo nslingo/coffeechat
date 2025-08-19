@@ -14,20 +14,30 @@ export const auth = betterAuth({
     requireEmailVerification: true, // Set to true for production
     autoSignIn: false,
     sendResetPassword: async ({user, url, token}, request) => {
-      console.log('🔐 Password reset requested for:', user.email);
-      await emailService.sendPasswordResetEmail(user, url);
+      try {
+        console.log('🔐 Password reset requested for:', user.email);
+        await emailService.sendPasswordResetEmail(user, url);
+      } catch (error) {
+        console.error('❌ Password reset email failed:', error);
+        throw error;
+      }
     }
   },
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url, token }, request) => {
-      // Server-side Cornell email validation
-      if (!user.email.toLowerCase().endsWith('@cornell.edu')) {
-        throw new Error('Registration is limited to Cornell University email addresses (@cornell.edu)');
-      }
+      try {
+        // Server-side Cornell email validation
+        if (!user.email.toLowerCase().endsWith('@cornell.edu')) {
+          throw new Error('Registration is limited to Cornell University email addresses (@cornell.edu)');
+        }
 
-      console.log('🔐 Email verification requested for:', user.email);
-      await emailService.sendVerificationEmail(user, url);
+        console.log('🔐 Email verification requested for:', user.email);
+        await emailService.sendVerificationEmail(user, url);
+      } catch (error) {
+        console.error('❌ Verification email failed:', error);
+        throw error;
+      }
     },
     async afterEmailVerification(user, request) {
       console.log(`✅ Email successfully verified for: ${user.email}`);

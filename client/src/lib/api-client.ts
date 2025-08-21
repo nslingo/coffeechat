@@ -44,4 +44,56 @@ apiClient.interceptors.response.use(
   }
 );
 
+// User API types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  displayName?: string;
+  bio?: string;
+  profilePicture?: string;
+  averageRating: number;
+  totalReviews: number;
+  emailVerified: boolean;
+  createdAt: string;
+}
+
+export interface UserStats {
+  activePosts: number;
+  completedSessions: number;
+  responseRate: number;
+}
+
+export interface UserProfile extends User {
+  stats: UserStats;
+}
+
+export interface UpdateProfileData {
+  displayName?: string;
+  bio?: string;
+  profilePicture?: string;
+}
+
+// User API functions
+export const userApi = {
+  // Get current user profile
+  getProfile: async (): Promise<UserProfile> => {
+    const response = await apiClient.get<{ user: UserProfile }>('/users/profile');
+    console.log(response);
+    return response.data.user;
+  },
+
+  // Update current user profile
+  updateProfile: async (data: UpdateProfileData): Promise<User> => {
+    const response = await apiClient.put<{ user: User; message: string }>('/users/profile', data);
+    return response.data.user;
+  },
+
+  // Get public user profile by ID
+  getPublicProfile: async (userId: string): Promise<User> => {
+    const response = await apiClient.get<{ user: User }>(`/users/profile/${userId}`);
+    return response.data.user;
+  },
+};
+
 export { apiClient };

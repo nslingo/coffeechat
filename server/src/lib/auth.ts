@@ -60,12 +60,12 @@ export const auth = betterAuth({
         type: 'string',
         required: false
       },
-      rating: {
+      averageRating: {
         type: 'number',
         required: false,
         defaultValue: 0
       },
-      totalRatings: {
+      totalReviews: {
         type: 'number',
         required: false,
         defaultValue: 0

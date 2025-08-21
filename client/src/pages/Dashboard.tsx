@@ -1,4 +1,7 @@
+import { useUserProfile } from '../hooks/useUser';
+
 const Dashboard = () => {
+  const { data: userProfile, isLoading } = useUserProfile();
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid lg:grid-cols-3 gap-8">
@@ -69,20 +72,41 @@ const Dashboard = () => {
           {/* Stats */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Stats</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Active Posts</span>
-                <span className="font-semibold text-gray-900">3</span>
+            {isLoading ? (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Active Posts</span>
+                  <div className="h-4 w-6 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Completed Sessions</span>
+                  <div className="h-4 w-6 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Rating</span>
+                  <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Completed Sessions</span>
-                <span className="font-semibold text-gray-900">12</span>
+            ) : userProfile ? (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Active Posts</span>
+                  <span className="font-semibold text-gray-900">{userProfile.stats.activePosts}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Completed Sessions</span>
+                  <span className="font-semibold text-gray-900">{userProfile.stats.completedSessions}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Rating</span>
+                  <span className="font-semibold text-gray-900">{userProfile.averageRating.toFixed(1)} ⭐</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Rating</span>
-                <span className="font-semibold text-gray-900">4.8 ⭐</span>
+            ) : (
+              <div className="text-center text-gray-500 py-4">
+                <p>Unable to load stats</p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Upcoming Sessions */}

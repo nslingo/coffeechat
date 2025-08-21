@@ -1,22 +1,72 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUserProfile, useUpdateProfile } from '../hooks/useUser';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: 'John Smith',
-    email: 'js123@cornell.edu',
-    bio: 'CS major passionate about algorithms and machine learning. Always happy to help with programming questions!',
-    canTeach: ['Data Structures', 'Algorithms', 'Python', 'Web Development'],
-    wantsToLearn: ['Machine Learning', 'System Design', 'Career Advice'],
-    rating: 4.8,
-    completedSessions: 12,
-    responseRate: 95
+  const { data: userProfile, isLoading, error } = useUserProfile();
+  const updateProfileMutation = useUpdateProfile();
+
+  const [editForm, setEditForm] = useState({
+    displayName: '',
+    bio: '',
+    profilePicture: '',
   });
 
-  const handleSave = () => {
-    // TODO: Save profile changes
-    setIsEditing(false);
+  // Initialize form when userProfile loads
+  useEffect(() => {
+    if (userProfile && !isEditing) {
+      setEditForm({
+        displayName: userProfile.displayName || '',
+        bio: userProfile.bio || '',
+        profilePicture: userProfile.profilePicture || '',
+      });
+    }
+  }, [userProfile, isEditing]);
+
+  const handleSave = async () => {
+    try {
+      await updateProfileMutation.mutateAsync(editForm);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="animate-pulse">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
+              <div className="space-y-2">
+                <div className="h-6 bg-gray-200 rounded w-32"></div>
+                <div className="h-4 bg-gray-200 rounded w-48"></div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-4 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="text-center text-red-600">
+            <p>Failed to load profile. Please try again.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile) return null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -27,16 +77,16 @@ const Profile = () => {
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-2xl font-semibold text-blue-600">
-                  {profile.name.split(' ').map(n => n[0]).join('')}
+                  {(userProfile.displayName || userProfile.name).split(' ').map(n => n[0]).join('')}
                 </span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
-                <p className="text-gray-600">{profile.email}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{userProfile.displayName || userProfile.name}</h1>
+                <p className="text-gray-600">{userProfile.email}</p>
                 <div className="flex items-center mt-1">
                   <span className="text-yellow-400">⭐</span>
-                  <span className="text-sm font-medium text-gray-900 ml-1">{profile.rating}</span>
-                  <span className="text-sm text-gray-500 ml-2">({profile.completedSessions} sessions)</span>
+                  <span className="text-sm font-medium text-gray-900 ml-1">{userProfile.averageRating.toFixed(1)}</span>
+                  <span className="text-sm text-gray-500 ml-2">({userProfile.totalReviews} reviews)</span>
                 </div>
               </div>
             </div>
@@ -54,15 +104,15 @@ const Profile = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Stats</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{profile.completedSessions}</div>
+              <div className="text-2xl font-bold text-blue-600">{userProfile.stats.completedSessions}</div>
               <div className="text-sm text-gray-600">Sessions Completed</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{profile.responseRate}%</div>
+              <div className="text-2xl font-bold text-green-600">{userProfile.stats.responseRate}%</div>
               <div className="text-sm text-gray-600">Response Rate</div>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">{profile.rating}</div>
+              <div className="text-2xl font-bold text-yellow-600">{userProfile.averageRating.toFixed(1)}</div>
               <div className="text-sm text-gray-600">Average Rating</div>
             </div>
           </div>
@@ -73,54 +123,23 @@ const Profile = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">About</h2>
           {isEditing ? (
             <textarea
-              value={profile.bio}
-              onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+              value={editForm.bio}
+              onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
               rows={4}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               placeholder="Tell others about yourself..."
             />
           ) : (
-            <p className="text-gray-700">{profile.bio}</p>
+            <p className="text-gray-700">{userProfile.bio || 'No bio added yet.'}</p>
           )}
         </div>
 
-        {/* Can Teach */}
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">I Can Teach</h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.canTeach.map((skill, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-              >
-                {skill}
-              </span>
-            ))}
-            {isEditing && (
-              <button className="px-3 py-1 border border-dashed border-gray-300 text-gray-500 text-sm rounded-full hover:border-gray-400">
-                + Add Skill
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Wants to Learn */}
+        {/* Active Posts */}
         <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">I Want to Learn</h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.wantsToLearn.map((topic, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-              >
-                {topic}
-              </span>
-            ))}
-            {isEditing && (
-              <button className="px-3 py-1 border border-dashed border-gray-300 text-gray-500 text-sm rounded-full hover:border-gray-400">
-                + Add Topic
-              </button>
-            )}
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Posts</h2>
+          <div className="text-center p-8 bg-gray-50 rounded-lg">
+            <div className="text-2xl font-bold text-gray-600">{userProfile.stats.activePosts}</div>
+            <div className="text-sm text-gray-500 mt-1">Active learning posts</div>
           </div>
         </div>
       </div>

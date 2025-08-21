@@ -15,17 +15,8 @@ const updateProfileSchema = z.object({
 // Middleware to get user from session
 const requireAuth = async (req: any, res: any, next: any) => {
   try {
-    const headersObj = new Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (Array.isArray(value)) {
-        value.forEach(v => headersObj.append(key, v));
-      } else if (typeof value === 'string') {
-        headersObj.append(key, value);
-      }
-    }
-
     const session = await auth.api.getSession({
-      headers: headersObj
+      headers: req.headers
     });
 
     if (!session?.user) {

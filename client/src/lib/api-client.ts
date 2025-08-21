@@ -1,28 +1,18 @@
 import axios from 'axios';
-import { authClient } from './auth-client';
 
 // Create axios instance with base configuration
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add request interceptor to include auth headers
+// Request interceptor for debugging (optional)
 apiClient.interceptors.request.use(
-  async (config) => {
-    try {
-      // Get the current session
-      const session = await authClient.getSession();
-      
-      if (session?.data?.session.token) {
-        config.headers.Authorization = `Bearer ${session.data.session.token}`;
-      }
-    } catch (error) {
-      console.warn('Failed to get session for API request:', error);
-    }
+  (config) => {
     return config;
   },
   (error) => {
@@ -78,7 +68,6 @@ export const userApi = {
   // Get current user profile
   getProfile: async (): Promise<UserProfile> => {
     const response = await apiClient.get<{ user: UserProfile }>('/api/users/profile');
-    console.log(response);
     return response.data.user;
   },
 

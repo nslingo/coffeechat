@@ -38,7 +38,6 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  displayName?: string;
   bio?: string;
   profilePicture?: string;
   averageRating: number;
@@ -58,7 +57,6 @@ export interface UserProfile extends User {
 }
 
 export interface UpdateProfileData {
-  displayName?: string;
   bio?: string;
   profilePicture?: string;
 }

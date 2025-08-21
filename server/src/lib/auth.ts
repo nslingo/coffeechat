@@ -48,10 +48,6 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      displayName: {
-        type: 'string',
-        required: false
-      },
       bio: {
         type: 'string', 
         required: false

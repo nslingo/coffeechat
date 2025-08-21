@@ -7,7 +7,6 @@ import { Prisma } from '@prisma/client'
 const router = Router();
 
 const updateProfileSchema = z.object({
-  displayName: z.string().min(1, 'Display name is required').optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   profilePicture: z.string().url('Must be a valid URL').optional()
 });
@@ -39,7 +38,6 @@ router.get('/profile', requireAuth, async (req: any, res, next) => {
         id: true,
         email: true,
         name: true,
-        displayName: true,
         bio: true,
         profilePicture: true,
         averageRating: true,
@@ -82,7 +80,6 @@ router.put('/profile', requireAuth, async (req: any, res, next) => {
         id: true,
         email: true,
         name: true,
-        displayName: true,
         bio: true,
         profilePicture: true,
         averageRating: true,
@@ -110,7 +107,6 @@ router.get('/profile/:userId', async (req, res, next) => {
       select: {
         id: true,
         name: true,
-        displayName: true,
         bio: true,
         profilePicture: true,
         averageRating: true,

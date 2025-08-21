@@ -7,7 +7,6 @@ const Profile = () => {
   const updateProfileMutation = useUpdateProfile();
 
   const [editForm, setEditForm] = useState({
-    displayName: '',
     bio: '',
     profilePicture: '',
   });
@@ -16,7 +15,6 @@ const Profile = () => {
   useEffect(() => {
     if (userProfile && !isEditing) {
       setEditForm({
-        displayName: userProfile.displayName || '',
         bio: userProfile.bio || '',
         profilePicture: userProfile.profilePicture || '',
       });
@@ -77,11 +75,11 @@ const Profile = () => {
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-2xl font-semibold text-blue-600">
-                  {(userProfile.displayName || userProfile.name).split(' ').map(n => n[0]).join('')}
+                  {userProfile.name.split(' ').map(n => n[0]).join('')}
                 </span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{userProfile.displayName || userProfile.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{userProfile.name}</h1>
                 <p className="text-gray-600">{userProfile.email}</p>
                 <div className="flex items-center mt-1">
                   <span className="text-yellow-400">⭐</span>

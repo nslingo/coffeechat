@@ -3,7 +3,7 @@ import { authClient } from './auth-client';
 
 // Create axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -23,7 +23,6 @@ apiClient.interceptors.request.use(
     } catch (error) {
       console.warn('Failed to get session for API request:', error);
     }
-    
     return config;
   },
   (error) => {
@@ -78,20 +77,20 @@ export interface UpdateProfileData {
 export const userApi = {
   // Get current user profile
   getProfile: async (): Promise<UserProfile> => {
-    const response = await apiClient.get<{ user: UserProfile }>('/users/profile');
+    const response = await apiClient.get<{ user: UserProfile }>('/api/users/profile');
     console.log(response);
     return response.data.user;
   },
 
   // Update current user profile
   updateProfile: async (data: UpdateProfileData): Promise<User> => {
-    const response = await apiClient.put<{ user: User; message: string }>('/users/profile', data);
+    const response = await apiClient.put<{ user: User; message: string }>('/api/users/profile', data);
     return response.data.user;
   },
 
   // Get public user profile by ID
   getPublicProfile: async (userId: string): Promise<User> => {
-    const response = await apiClient.get<{ user: User }>(`/users/profile/${userId}`);
+    const response = await apiClient.get<{ user: User }>(`/api/users/profile/${userId}`);
     return response.data.user;
   },
 };

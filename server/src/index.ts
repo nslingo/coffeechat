@@ -1,6 +1,6 @@
+import 'dotenv/config'
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './lib/auth.js';
 import { usersRouter } from './routes/users.js';
@@ -8,8 +8,6 @@ import { postsRouter } from './routes/posts.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { messagesRouter } from './routes/messages.js';
 import { errorHandler } from './middleware/errorHandler.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;

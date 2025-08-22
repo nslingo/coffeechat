@@ -8,8 +8,11 @@ const router = Router();
 
 const updateProfileSchema = z.object({
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
-  profilePicture: z.string().url('Must be a valid URL').optional()
-});
+  profilePicture: z.string().url('Must be a valid URL').optional().or(z.literal(''))
+}).transform((data) => ({
+  ...data,
+  profilePicture: data.profilePicture === '' ? null : data.profilePicture
+}));
 
 // Middleware to get user from session
 const requireAuth = async (req: any, res: any, next: any) => {

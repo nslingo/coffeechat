@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import BrowsePosts from './pages/BrowsePosts';
+import CreatePost from './pages/CreatePost';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,10 +81,15 @@ function App() {
           path: 'posts',
           element: (
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <div className="max-w-7xl mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-gray-900">Browse Posts</h1>
-                <p className="text-gray-600 mt-2">Coming soon...</p>
-              </div>
+              <BrowsePosts />
+            </ProtectedRoute>
+          )
+        },
+        {
+          path: 'posts/create',
+          element: (
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <CreatePost />
             </ProtectedRoute>
           )
         },

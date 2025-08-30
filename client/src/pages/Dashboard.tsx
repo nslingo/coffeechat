@@ -1,7 +1,10 @@
 import { useUserProfile } from '../hooks/useUser';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { data: userProfile, isLoading } = useUserProfile();
+  const navigate = useNavigate();
+  
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid lg:grid-cols-3 gap-8">
@@ -10,7 +13,10 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
+              <button 
+                onClick={() => navigate('/posts/create')}
+                className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              >
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -22,7 +28,10 @@ const Dashboard = () => {
                 </div>
               </button>
               
-              <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors">
+              <button 
+                onClick={() => navigate('/posts')}
+                className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
+              >
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                   <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

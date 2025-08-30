@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import BrowsePosts from './pages/BrowsePosts';
 import CreatePost from './pages/CreatePost';
+import PostDetail from './pages/PostDetail';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +91,14 @@ function App() {
           element: (
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <CreatePost />
+            </ProtectedRoute>
+          )
+        },
+        {
+          path: 'posts/:postId',
+          element: (
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <PostDetail />
             </ProtectedRoute>
           )
         },

@@ -1,92 +1,390 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { auth } from '../lib/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { PostType, PostCategory, Prisma } from '@prisma/client';
 
 const router = Router();
 
+// Validation schemas
 const createPostSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
-  description: z.string().min(1, 'Description is required').max(1000, 'Description must be less than 1000 characters'),
-  type: z.enum(['teach', 'learn'], { message: 'Type must be either "teach" or "learn"' }),
-  category: z.enum(['career', 'coursework', 'hobbies'], { message: 'Category must be career, coursework, or hobbies' }),
-  subject: z.string().min(1, 'Subject is required'),
-  tags: z.array(z.string()).optional(),
-  courseCode: z.string().optional(),
+  description: z.string().min(1, 'Description is required'),
+  type: z.nativeEnum(PostType),
+  category: z.nativeEnum(PostCategory),
+  subject: z.string().min(1, 'Subject is required').max(100, 'Subject must be less than 100 characters'),
+  courseCode: z.string().max(20, 'Course code must be less than 20 characters').optional(),
+  tags: z.array(z.string()).default([]),
   availability: z.array(z.object({
-    day: z.string(),
-    timeSlots: z.array(z.string())
-  })).optional()
+    day: z.string().max(10),
+    timeSlot: z.string().max(20)
+  })).default([])
 });
+
+const updatePostSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().min(1).optional(),
+  type: z.nativeEnum(PostType).optional(),
+  category: z.nativeEnum(PostCategory).optional(),
+  subject: z.string().min(1).max(100).optional(),
+  courseCode: z.string().max(20).optional().or(z.literal('')),
+  tags: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+  availability: z.array(z.object({
+    day: z.string().max(10),
+    timeSlot: z.string().max(20)
+  })).optional()
+}).transform((data) => ({
+  ...data,
+  courseCode: data.courseCode === '' ? null : data.courseCode
+}));
 
 const searchPostsSchema = z.object({
-  type: z.enum(['teach', 'learn']).optional(),
-  category: z.enum(['career', 'coursework', 'hobbies']).optional(),
+  type: z.nativeEnum(PostType).optional(),
+  category: z.nativeEnum(PostCategory).optional(),
   subject: z.string().optional(),
   courseCode: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  page: z.coerce.number().min(1).optional().default(1),
-  limit: z.coerce.number().min(1).max(50).optional().default(10)
+  tags: z.string().optional(), // comma-separated tags
+  search: z.string().optional(), // general search in title/description
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(50).default(20),
+  authorId: z.string().optional() // for filtering by author
 });
 
-router.post('/', async (req, res, next) => {
+// Middleware to get user from session
+const requireAuth = async (req: any, res: any, next: any) => {
   try {
-    const validatedData = createPostSchema.parse(req.body);
-    res.status(201).json({
-      message: 'Post created successfully',
-      data: validatedData
+    const session = await auth.api.getSession({
+      headers: req.headers
     });
-  } catch (error) {
-    next(error);
-  }
-});
 
-router.get('/', async (req, res, next) => {
+    if (!session?.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    req.user = session.user;
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+};
+
+// GET /api/posts - Search and filter posts (public with optional auth)
+router.get('/', requireAuth, async (req: any, res, next) => {
   try {
-    const validatedQuery = searchPostsSchema.parse(req.query);
+    const params = searchPostsSchema.parse(req.query);
+    const { type, category, subject, courseCode, tags, search, page, limit, authorId } = params;
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: Prisma.PostWhereInput = {
+      isActive: true
+    };
+
+    if (type) where.type = type;
+    if (category) where.category = category;
+    if (subject) where.subject = { contains: subject, mode: 'insensitive' };
+    if (courseCode) where.courseCode = { contains: courseCode, mode: 'insensitive' };
+    if (authorId) where.authorId = authorId;
+    
+    if (tags) {
+      const tagArray = tags.split(',').map(tag => tag.trim());
+      where.tags = { hasSome: tagArray };
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              profilePicture: true,
+              averageRating: true,
+              totalReviews: true
+            }
+          },
+          availability: true,
+          _count: {
+            select: { sessions: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.post.count({ where })
+    ]);
+
     res.json({
-      message: 'Posts retrieved successfully',
-      data: {
-        posts: [],
-        pagination: {
-          page: validatedQuery.page,
-          limit: validatedQuery.limit,
-          total: 0,
-          totalPages: 0
-        }
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
-router.get('/:postId', async (req, res) => {
-  const { postId } = req.params;
-  res.json({
-    message: 'Post retrieved successfully',
-    postId
-  });
+// GET /api/posts/:id - Get single post (public)
+router.get('/:id', requireAuth, async (req: any, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const post = await prisma.post.findUnique({
+      where: { 
+        id,
+        isActive: true 
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+            averageRating: true,
+            totalReviews: true,
+            bio: true
+          }
+        },
+        availability: true,
+        _count: {
+          select: { sessions: true }
+        }
+      }
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    res.json({ post });
+  } catch (error) {
+    return next(error);
+  }
 });
 
-router.put('/:postId', async (req, res, next) => {
+// POST /api/posts - Create new post (authenticated)
+router.post('/', requireAuth, async (req: any, res, next) => {
   try {
-    const { postId } = req.params;
-    const validatedData = createPostSchema.partial().parse(req.body);
-    res.json({
-      message: 'Post updated successfully',
-      postId,
-      data: validatedData
+    const validatedData = createPostSchema.parse(req.body);
+    const { availability, ...postData } = validatedData;
+
+    const postDataWithNulls = {
+      ...postData,
+      courseCode: postData.courseCode ?? null
+    };
+
+    const post = await prisma.post.create({
+      data: {
+        ...postDataWithNulls,
+        author: {
+          connect: { id: req.user.id }
+        },
+        availability: {
+          create: availability
+        }
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+            averageRating: true,
+            totalReviews: true
+          }
+        },
+        availability: true,
+        _count: {
+          select: { sessions: true }
+        }
+      }
+    });
+
+    res.status(201).json({
+      message: 'Post created successfully',
+      post
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
-router.delete('/:postId', async (req, res) => {
-  const { postId } = req.params;
-  res.json({
-    message: 'Post deleted successfully',
-    postId
-  });
+// PUT /api/posts/:id - Update post (authenticated, author only)
+router.put('/:id', requireAuth, async (req: any, res, next) => {
+  try {
+    const { id } = req.params;
+    const validatedData = updatePostSchema.parse(req.body);
+    const { availability, ...postData } = validatedData;
+
+    // Check if post exists and user is the author
+    const existingPost = await prisma.post.findUnique({
+      where: { id },
+      select: { authorId: true }
+    });
+
+    if (!existingPost) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (existingPost.authorId !== req.user.id) {
+      return res.status(403).json({ error: 'You can only edit your own posts' });
+    }
+
+    const updateData: any = { ...postData };
+
+    // Handle availability updates if provided
+    if (availability !== undefined) {
+      updateData.availability = {
+        deleteMany: {},
+        create: availability
+      };
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: { id },
+      data: updateData,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+            averageRating: true,
+            totalReviews: true
+          }
+        },
+        availability: true,
+        _count: {
+          select: { sessions: true }
+        }
+      }
+    });
+
+    res.json({
+      message: 'Post updated successfully',
+      post: updatedPost
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// DELETE /api/posts/:id - Delete/deactivate post (authenticated, author only)
+router.delete('/:id', requireAuth, async (req: any, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Check if post exists and user is the author
+    const existingPost = await prisma.post.findUnique({
+      where: { id },
+      select: { authorId: true, isActive: true }
+    });
+
+    if (!existingPost) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (existingPost.authorId !== req.user.id) {
+      return res.status(403).json({ error: 'You can only delete your own posts' });
+    }
+
+    if (!existingPost.isActive) {
+      return res.status(400).json({ error: 'Post is already deactivated' });
+    }
+
+    // Soft delete by setting isActive to false
+    await prisma.post.update({
+      where: { id },
+      data: { isActive: false }
+    });
+
+    res.json({ message: 'Post deactivated successfully' });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// GET /api/posts/my/posts - Get current user's posts (authenticated)
+router.get('/my/posts', requireAuth, async (req: any, res, next) => {
+  try {
+    const params = searchPostsSchema.parse(req.query);
+    const { type, category, subject, courseCode, tags, search, page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    // Build where clause for user's posts
+    const where: Prisma.PostWhereInput = {
+      authorId: req.user.id
+    };
+
+    if (type) where.type = type;
+    if (category) where.category = category;
+    if (subject) where.subject = { contains: subject, mode: 'insensitive' };
+    if (courseCode) where.courseCode = { contains: courseCode, mode: 'insensitive' };
+    
+    if (tags) {
+      const tagArray = tags.split(',').map(tag => tag.trim());
+      where.tags = { hasSome: tagArray };
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              profilePicture: true,
+              averageRating: true,
+              totalReviews: true
+            }
+          },
+          availability: true,
+          _count: {
+            select: { sessions: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.post.count({ where })
+    ]);
+
+    res.json({
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 export { router as postsRouter };

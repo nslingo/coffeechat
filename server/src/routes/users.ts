@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { auth } from '../lib/auth.js';
 import { prisma } from '../lib/prisma.js';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -14,24 +14,6 @@ const updateProfileSchema = z.object({
   profilePicture: data.profilePicture === '' ? null : data.profilePicture
 }));
 
-// Middleware to get user from session
-const requireAuth = async (req: any, res: any, next: any) => {
-  try {
-    const session = await auth.api.getSession({
-      headers: req.headers
-    });
-
-    if (!session?.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    req.user = session.user;
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    res.status(401).json({ error: 'Authentication failed' });
-  }
-};
 
 router.get('/profile', requireAuth, async (req: any, res, next) => {
   try {

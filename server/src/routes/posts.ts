@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { auth } from '../lib/auth.js';
 import { prisma } from '../lib/prisma.js';
 import { PostType, PostCategory, Prisma } from '@prisma/client';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -51,24 +51,6 @@ const searchPostsSchema = z.object({
   authorId: z.string().optional() // for filtering by author
 });
 
-// Middleware to get user from session
-const requireAuth = async (req: any, res: any, next: any) => {
-  try {
-    const session = await auth.api.getSession({
-      headers: req.headers
-    });
-
-    if (!session?.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    req.user = session.user;
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    res.status(401).json({ error: 'Authentication failed' });
-  }
-};
 
 // GET /api/posts - Search and filter posts (public with optional auth)
 router.get('/', requireAuth, async (req: any, res, next) => {

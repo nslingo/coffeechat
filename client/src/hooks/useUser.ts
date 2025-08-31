@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userApi, type UserProfile, type UpdateProfileData, type User } from '../lib/api-client';
+import { userService, type UserProfile, type UpdateProfileData, type User } from '../services/userService';
 
 // Query keys for React Query
 const QUERY_KEYS = {
@@ -11,7 +11,7 @@ const QUERY_KEYS = {
 export const useUserProfile = () => {
   return useQuery({
     queryKey: QUERY_KEYS.userProfile,
-    queryFn: userApi.getProfile,
+    queryFn: userService.getProfile,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
   });
@@ -22,7 +22,7 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: userApi.updateProfile,
+    mutationFn: userService.updateProfile,
     onSuccess: (updatedUser: User) => {
       // Update the cached profile data
       queryClient.setQueryData(QUERY_KEYS.userProfile, (oldData: UserProfile | undefined) => {
@@ -43,7 +43,7 @@ export const useUpdateProfile = () => {
 export const usePublicProfile = (userId: string) => {
   return useQuery({
     queryKey: QUERY_KEYS.publicProfile(userId),
-    queryFn: () => userApi.getPublicProfile(userId),
+    queryFn: () => userService.getPublicProfile(userId),
     enabled: !!userId,
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,

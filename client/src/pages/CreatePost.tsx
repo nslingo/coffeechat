@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreatePost } from '../hooks/usePosts';
-import type { CreatePostData } from '../lib/api-client';
+import type { CreatePostData } from '../services/postService';
 
 const CreatePost = () => {
   const navigate = useNavigate();
@@ -318,7 +318,8 @@ const CreatePost = () => {
               value={availabilityTime}
               onChange={(e) => setAvailabilityTime(e.target.value)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. 2:00-4:00 PM, Morning, Evening"
+              placeholder="Format: 10:00am-1:00pm, 1:15-5:30pm, 9:30-11:00am (must specify am/pm)"
+              pattern="[0-9]{1,2}:[0-9]{2}(am|pm)-[0-9]{1,2}:[0-9]{2}(am|pm)"
             />
             <button
               type="button"

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePosts } from '../hooks/usePosts';
-import type { SearchPostsParams } from '../lib/api-client';
+import type { SearchPostsParams } from '../services/postService';
 
 const BrowsePosts = () => {
   const navigate = useNavigate();

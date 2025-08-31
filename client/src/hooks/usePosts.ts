@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { postApi, type Post, type CreatePostData, type UpdatePostData, type SearchPostsParams } from '../lib/api-client';
+import { postService, type Post, type CreatePostData, type UpdatePostData, type SearchPostsParams } from '../services/postService';
 
 // Query keys for React Query
 const QUERY_KEYS = {
@@ -12,7 +12,7 @@ const QUERY_KEYS = {
 export const usePosts = (params?: SearchPostsParams) => {
   return useQuery({
     queryKey: QUERY_KEYS.posts(params),
-    queryFn: () => postApi.getPosts(params),
+    queryFn: () => postService.getPosts(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 1,
   });
@@ -22,7 +22,7 @@ export const usePosts = (params?: SearchPostsParams) => {
 export const usePost = (postId: string) => {
   return useQuery({
     queryKey: QUERY_KEYS.post(postId),
-    queryFn: () => postApi.getPost(postId),
+    queryFn: () => postService.getPost(postId),
     enabled: !!postId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
@@ -33,7 +33,7 @@ export const usePost = (postId: string) => {
 export const useMyPosts = (params?: SearchPostsParams) => {
   return useQuery({
     queryKey: QUERY_KEYS.myPosts(params),
-    queryFn: () => postApi.getMyPosts(params),
+    queryFn: () => postService.getMyPosts(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 1,
   });
@@ -44,7 +44,7 @@ export const useCreatePost = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: postApi.createPost,
+    mutationFn: postService.createPost,
     onSuccess: () => {
       // Invalidate and refetch posts queries
       queryClient.invalidateQueries({ queryKey: ['posts'] });
@@ -61,7 +61,7 @@ export const useUpdatePost = () => {
   
   return useMutation({
     mutationFn: ({ postId, data }: { postId: string; data: UpdatePostData }) => 
-      postApi.updatePost(postId, data),
+      postService.updatePost(postId, data),
     onSuccess: (updatedPost: Post) => {
       // Update the cached post data
       queryClient.setQueryData(QUERY_KEYS.post(updatedPost.id), updatedPost);
@@ -79,7 +79,7 @@ export const useDeletePost = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: postApi.deletePost,
+    mutationFn: postService.deletePost,
     onSuccess: () => {
       // Invalidate and refetch posts queries
       queryClient.invalidateQueries({ queryKey: ['posts'] });

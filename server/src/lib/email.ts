@@ -1,20 +1,45 @@
 import nodemailer from 'nodemailer';
 
+if (!process.env.SMTP_HOST) {
+  throw new Error("SMTP_HOST must be set");
+}
+
+if (!process.env.SMTP_PORT) {
+  throw new Error("SMTP_PORT must be set");
+}
+
+if (!process.env.SMTP_USER) {
+  throw new Error("SMTP_USER must be set");
+}
+
+if (!process.env.SMTP_PASS) {
+  throw new Error("SMTP_PASS must be set");
+}
+
+if (!process.env.SMTP_FROM) {
+  throw new Error("SMTP_FROM must be set");
+}
+
 interface EmailData {
   to: string;
   subject: string;
-  text?: string;
-  html?: string;
+  text: string;
+  html: string;
 }
 
+interface EmailUser {
+  email: string;
+  name: string;
+};
+
 class EmailService {
-  public transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.ethereal.email",
-      port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT!),
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -23,30 +48,22 @@ class EmailService {
   }
 
   async sendEmail(data: EmailData): Promise<void> {
-    const info = await this.transporter.sendMail({
-      from: `"CoffeeChat" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+    await this.transporter.sendMail({
+      from: `"CoffeeChat" <${process.env.SMTP_FROM}>`,
       to: data.to,
       subject: data.subject,
       text: data.text,
       html: data.html,
     });
-
-    console.log('📧 Email sent:', info.messageId);
-    
-    // For Ethereal, log the preview URL
-    if (process.env.NODE_ENV === 'development' && info.messageId) {
-      console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
-    }
   }
 
-  async sendVerificationEmail(user: { email: string; name?: string }, url: string): Promise<void> {
-    // Replace the default callbackURL=/ with our custom callback URL
-    const callbackURL = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login?verified=true`;
+  async sendVerificationEmail(user: EmailUser, url: string): Promise<void> {
+    const callbackURL = `${process.env.CLIENT_URL}`;
     const modifiedUrl = url.replace('callbackURL=/', `callbackURL=${encodeURIComponent(callbackURL)}`);
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1f2937;">Welcome to CoffeeChat!</h2>
-        <p>Hi ${user.name || 'there'}!</p>
+        <p>Hi ${user.name}!</p>
         <p>Welcome to CoffeeChat! Click the button below to verify your Cornell email address:</p>
         
         <div style="text-align: center; margin: 30px 0;">
@@ -75,7 +92,7 @@ class EmailService {
     `;
 
     const text = `
-Hi ${user.name || 'there'}!
+Hi ${user.name}!
 
 Welcome to CoffeeChat! Click the link below to verify your Cornell email address:
 ${modifiedUrl}
@@ -99,11 +116,11 @@ The CoffeeChat Team
     });
   }
 
-  async sendPasswordResetEmail(user: { email: string; name?: string }, url: string): Promise<void> {
+  async sendPasswordResetEmail(user: EmailUser, url: string): Promise<void> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1f2937;">Reset Your Password</h2>
-        <p>Hi ${user.name || 'there'}!</p>
+        <p>Hi ${user.name}!</p>
         <p>Someone requested a password reset for your CoffeeChat account. Click the button below to reset your password:</p>
         
         <div style="text-align: center; margin: 30px 0;">
@@ -127,7 +144,7 @@ The CoffeeChat Team
     `;
 
     const text = `
-Hi ${user.name || 'there'}!
+Hi ${user.name}!
 
 Someone requested a password reset for your CoffeeChat account. Click the link below to reset your password:
 ${url}

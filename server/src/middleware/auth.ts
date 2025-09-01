@@ -29,7 +29,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     req.user = session.user as any;
-    next();
+    return next();
   } catch (error) {
     console.error('Auth middleware error:', error);
     return res.status(401).json({ message: 'Authentication failed' });

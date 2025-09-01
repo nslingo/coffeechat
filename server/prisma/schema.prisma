@@ -16,7 +16,6 @@ model User {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   bio               String?
-  profilePicture    String?
   averageRating     Float             @default(0)
   totalReviews      Int               @default(0)
   accounts         Account[] 
@@ -27,22 +26,20 @@ model User {
   reviewsGiven     Review[]  @relation("Reviewer")
   sessions         Session[]
 
-  @@index([email])
-  @@index([emailVerified])
   @@map("users")
 }
 
 model Account {
   id                String   @id @default(cuid())
+  userId            String   @map("user_id")
   accountId         String   @map("account_id")
   providerId        String   @map("provider_id")
-  userId            String   @map("user_id")
   accessToken       String?  @map("access_token")
   refreshToken      String?  @map("refresh_token")
-  idToken           String?  @map("id_token")
   accessTokenExpiresAt DateTime? @map("access_token_expires_at")
   refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
   scope             String?
+  idToken           String?  @map("id_token")
   password          String?
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
@@ -113,7 +110,6 @@ model PostAvailability {
   timeSlot String @db.VarChar(20)
   post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  @@index([postId])
   @@map("post_availability")
 }
 
@@ -121,7 +117,7 @@ model Review {
   id         String   @id @default(cuid())
   reviewerId String   @map("reviewer_id")
   revieweeId String   @map("reviewee_id")
-  rating     Int      @db.SmallInt // 1-5 rating constraint
+  rating     Int      @db.SmallInt
   feedback   String?
   createdAt  DateTime @default(now()) @map("created_at")
   reviewee   User     @relation("Reviewee", fields: [revieweeId], references: [id])
@@ -147,6 +143,7 @@ model Message {
   @@index([recipientId])
   @@index([createdAt])
   @@index([isRead])
+  @@index([recipientId, isRead])
   @@map("messages")
 }
 

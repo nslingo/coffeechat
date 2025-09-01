@@ -1,6 +1,7 @@
 import { authClient } from './lib/auth-client';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -11,18 +12,27 @@ import Profile from './pages/Profile';
 import BrowsePosts from './pages/BrowsePosts';
 import CreatePost from './pages/CreatePost';
 import PostDetail from './pages/PostDetail';
+import Messages from './pages/Messages';
+import Conversation from './pages/Conversation';
+import UserProfile from './pages/UserProfile';
+import EditPost from './pages/EditPost';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
-
+// Component to handle query invalidation on user change
 function App() {
   const { data: session, isPending } = authClient.useSession();
+  const queryClient = useQueryClient();
+  const previousUserIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const currentUserId = session?.user?.id || null;
+    
+    // If user changed (including logout), clear all queries
+    if (previousUserIdRef.current !== null && previousUserIdRef.current !== currentUserId) {
+      queryClient.clear();
+    }
+    
+    previousUserIdRef.current = currentUserId;
+  }, [session?.user?.id, queryClient]);
 
   if (isPending) return (
   <div className="flex justify-center items-center h-screen" role="status">
@@ -103,13 +113,34 @@ function App() {
           )
         },
         {
+          path: 'posts/:postId/edit',
+          element: (
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <EditPost />
+            </ProtectedRoute>
+          )
+        },
+        {
           path: 'messages',
           element: (
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <div className="max-w-7xl mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
-                <p className="text-gray-600 mt-2">Coming soon...</p>
-              </div>
+              <Messages />
+            </ProtectedRoute>
+          )
+        },
+        {
+          path: 'messages/:userId',
+          element: (
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Conversation />
+            </ProtectedRoute>
+          )
+        },
+        {
+          path: 'users/:userId',
+          element: (
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <UserProfile />
             </ProtectedRoute>
           )
         },
@@ -121,11 +152,7 @@ function App() {
     }
   ]);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App

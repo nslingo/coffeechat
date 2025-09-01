@@ -1,17 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, type UserProfile, type UpdateProfileData, type User } from '../services/userService';
+import { authClient } from '../lib/auth-client';
 
 // Query keys for React Query
 const QUERY_KEYS = {
-  userProfile: ['user', 'profile'] as const,
+  userProfile: (userId: string) => ['user', 'profile', userId] as const,
   publicProfile: (userId: string) => ['user', 'public', userId] as const,
 };
 
 // Hook to get current user profile
 export const useUserProfile = () => {
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
+
   return useQuery({
-    queryKey: QUERY_KEYS.userProfile,
+    queryKey: userId ? QUERY_KEYS.userProfile(userId) : ['user', 'profile', 'none'],
     queryFn: userService.getProfile,
+    enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
   });
@@ -20,18 +25,22 @@ export const useUserProfile = () => {
 // Hook to update current user profile
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
   
   return useMutation({
     mutationFn: userService.updateProfile,
     onSuccess: (updatedUser: User) => {
       // Update the cached profile data
-      queryClient.setQueryData(QUERY_KEYS.userProfile, (oldData: UserProfile | undefined) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          ...updatedUser,
-        };
-      });
+      if (userId) {
+        queryClient.setQueryData(QUERY_KEYS.userProfile(userId), (oldData: UserProfile | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            ...updatedUser,
+          };
+        });
+      }
     },
     onError: (error) => {
       console.error('Profile update failed:', error);

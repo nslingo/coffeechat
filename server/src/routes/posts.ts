@@ -95,10 +95,7 @@ router.get('/', requireAuth, async (req: any, res, next) => {
               totalReviews: true
             }
           },
-          availability: true,
-          _count: {
-            select: { sessions: true }
-          }
+          availability: true
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -142,10 +139,7 @@ router.get('/:id', requireAuth, async (req: any, res, next) => {
             bio: true
           }
         },
-        availability: true,
-        _count: {
-          select: { sessions: true }
-        }
+        availability: true
       }
     });
 
@@ -190,10 +184,7 @@ router.post('/', requireAuth, async (req: any, res, next) => {
             totalReviews: true
           }
         },
-        availability: true,
-        _count: {
-          select: { sessions: true }
-        }
+        availability: true
       }
     });
 
@@ -250,10 +241,7 @@ router.put('/:id', requireAuth, async (req: any, res, next) => {
             totalReviews: true
           }
         },
-        availability: true,
-        _count: {
-          select: { sessions: true }
-        }
+        availability: true
       }
     });
 
@@ -343,10 +331,7 @@ router.get('/my/posts', requireAuth, async (req: any, res, next) => {
               totalReviews: true
             }
           },
-          availability: true,
-          _count: {
-            select: { sessions: true }
-          }
+          availability: true
         },
         orderBy: { createdAt: 'desc' },
         skip,

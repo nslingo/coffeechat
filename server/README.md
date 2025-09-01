@@ -29,7 +29,6 @@ Backend API server for the CoffeeChat platform built with Node.js, Express, and 
 - **Authentication:** `/api/auth/*`
 - **Users:** `/api/users/*`
 - **Posts:** `/api/posts/*`
-- **Sessions:** `/api/sessions/*`
 - **Messages:** `/api/messages/*`
 
 ## Features

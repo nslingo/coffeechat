@@ -66,10 +66,10 @@ const Dashboard = () => {
               </div>
               
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-900">Upcoming session with Alex K. tomorrow at 3 PM</p>
-                  <p className="text-xs text-gray-500">3 days ago</p>
+                  <p className="text-sm text-gray-900">New message from Sarah J. about Python help</p>
+                  <p className="text-xs text-gray-500">2 hours ago</p>
                 </div>
               </div>
             </div>
@@ -88,10 +88,6 @@ const Dashboard = () => {
                   <div className="h-4 w-6 bg-gray-200 rounded animate-pulse"></div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Completed Sessions</span>
-                  <div className="h-4 w-6 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Rating</span>
                   <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
                 </div>
@@ -101,10 +97,6 @@ const Dashboard = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Active Posts</span>
                   <span className="font-semibold text-gray-900">{userProfile.stats.activePosts}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Completed Sessions</span>
-                  <span className="font-semibold text-gray-900">{userProfile.stats.completedSessions}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Rating</span>
@@ -118,21 +110,19 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Upcoming Sessions */}
+          {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Sessions</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <div className="p-3 border border-gray-200 rounded-lg">
-                <div className="font-medium text-sm text-gray-900">Math Tutoring</div>
-                <div className="text-xs text-gray-500">Tomorrow, 3:00 PM</div>
-                <div className="text-xs text-gray-500">with Alex K.</div>
-              </div>
+              <button className="w-full p-3 border border-gray-200 rounded-lg text-left hover:bg-gray-50 transition-colors">
+                <div className="font-medium text-sm text-gray-900">Browse Posts</div>
+                <div className="text-xs text-gray-500">Find someone to help with your learning goals</div>
+              </button>
               
-              <div className="p-3 border border-gray-200 rounded-lg">
-                <div className="font-medium text-sm text-gray-900">Career Chat</div>
-                <div className="text-xs text-gray-500">Friday, 11:00 AM</div>
-                <div className="text-xs text-gray-500">with Jordan P.</div>
-              </div>
+              <button className="w-full p-3 border border-gray-200 rounded-lg text-left hover:bg-gray-50 transition-colors">
+                <div className="font-medium text-sm text-gray-900">Create New Post</div>
+                <div className="text-xs text-gray-500">Share what you can teach or want to learn</div>
+              </button>
             </div>
           </div>
         </div>

@@ -19,15 +19,13 @@ model User {
   profilePicture    String?
   averageRating     Float             @default(0)
   totalReviews      Int               @default(0)
-  accounts          Account[]
-  sessionsAsLearner LearningSession[] @relation("Learner")
-  sessionsAsTeacher LearningSession[] @relation("Teacher")
-  messagesReceived  Message[]         @relation("MessageRecipient")
-  messagesSent      Message[]         @relation("MessageSender")
-  postsCreated      Post[]            @relation("PostAuthor")
-  reviewsReceived   Review[]          @relation("Reviewee")
-  reviewsGiven      Review[]          @relation("Reviewer")
-  sessions          Session[]
+  accounts         Account[] 
+  messagesReceived Message[] @relation("MessageRecipient")
+  messagesSent     Message[] @relation("MessageSender")
+  postsCreated     Post[]    @relation("PostAuthor")
+  reviewsReceived  Review[]  @relation("Reviewee")
+  reviewsGiven     Review[]  @relation("Reviewer")
+  sessions         Session[]
 
   @@index([email])
   @@index([emailVerified])
@@ -97,7 +95,6 @@ model Post {
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
   authorId     String             @map("author_id")
-  sessions     LearningSession[]
   availability PostAvailability[]
   author       User               @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
@@ -122,44 +119,17 @@ model PostAvailability {
   @@map("post_availability")
 }
 
-model LearningSession {
-  id          String        @id @default(cuid())
-  teacherId   String        @map("teacher_id")
-  learnerId   String        @map("learner_id")
-  postId      String        @map("post_id")
-  scheduledAt DateTime      @map("scheduled_at")
-  endAt       DateTime      @map("end_at")
-  location    String?       @db.VarChar(200)
-  notes       String?
-  status      SessionStatus @default(SCHEDULED)
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  learner     User          @relation("Learner", fields: [learnerId], references: [id])
-  post        Post          @relation(fields: [postId], references: [id])
-  teacher     User          @relation("Teacher", fields: [teacherId], references: [id])
-  reviews     Review[]
-
-  @@index([teacherId])
-  @@index([learnerId])
-  @@index([postId])
-  @@index([scheduledAt])
-  @@index([status])
-  @@map("learning_sessions")
-}
-
 model Review {
-  id         String          @id @default(cuid())
-  sessionId  String          @map("session_id")
-  reviewerId String          @map("reviewer_id")
-  revieweeId String          @map("reviewee_id")
-  rating     Int             @db.SmallInt // 1-5 rating constraint
+  id         String   @id @default(cuid())
+  reviewerId String   @map("reviewer_id")
+  revieweeId String   @map("reviewee_id")
+  rating     Int      @db.SmallInt // 1-5 rating constraint
   feedback   String?
-  createdAt  DateTime        @default(now()) @map("created_at")
-  reviewee   User            @relation("Reviewee", fields: [revieweeId], references: [id])
-  reviewer   User            @relation("Reviewer", fields: [reviewerId], references: [id])
-  session    LearningSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+  reviewee   User     @relation("Reviewee", fields: [revieweeId], references: [id])
+  reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id])
 
-  @@unique([sessionId, reviewerId])
+  @@unique([reviewerId, revieweeId])
   @@index([revieweeId])
   @@index([rating])
   @@map("reviews")
@@ -197,11 +167,3 @@ enum PostCategory {
   @@map("post_category")
 }
 
-enum SessionStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELLED
-  NO_SHOW
-
-  @@map("session_status")
-}

@@ -15,7 +15,6 @@ export interface User {
 
 export interface UserStats {
   activePosts: number;
-  completedSessions: number;
   responseRate: number;
 }
 

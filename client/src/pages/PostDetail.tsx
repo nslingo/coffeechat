@@ -44,6 +44,11 @@ const PostDetail = () => {
     });
   };
 
+  const handleSendMessage = () => {
+    // TODO: Implement messaging functionality
+    alert('Messaging feature coming soon!');
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Back Button */}
@@ -102,9 +107,9 @@ const PostDetail = () => {
             )}
             <div className="flex items-center">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 8h6m-6-4h6m2 8a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v14z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z" />
               </svg>
-              {post._count.sessions} session{post._count.sessions !== 1 ? 's' : ''}
+              Available for chat
             </div>
           </div>
         </div>
@@ -205,16 +210,19 @@ const PostDetail = () => {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                  Schedule Session
-                </button>
-                <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={handleSendMessage}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
                   Send Message
                 </button>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500 text-center">
-                These features are coming soon!
+                Connect with {post.author.name} to coordinate your learning session!
               </div>
             </div>
 
@@ -231,10 +239,6 @@ const PostDetail = () => {
                   <span className="text-gray-900">{formatDate(post.updatedAt)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Sessions booked</span>
-                  <span className="text-gray-900">{post._count.sessions}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-gray-600">Status</span>
                   <span className={`font-medium ${post.isActive ? 'text-green-600' : 'text-red-600'}`}>
                     {post.isActive ? 'Active' : 'Inactive'}
@@ -245,6 +249,7 @@ const PostDetail = () => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

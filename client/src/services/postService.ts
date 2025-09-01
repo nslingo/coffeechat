@@ -31,9 +31,6 @@ export interface Post {
   authorId: string;
   author: PostAuthor;
   availability: PostAvailability[];
-  _count: {
-    sessions: number;
-  };
 }
 
 export interface CreatePostData {

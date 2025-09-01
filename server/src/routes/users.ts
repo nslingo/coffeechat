@@ -39,7 +39,6 @@ router.get('/profile', requireAuth, async (req: any, res, next) => {
     // Calculate additional stats (simplified for now)
     const stats = {
       activePosts: 0, // TODO: Count from posts table
-      completedSessions: 0, // TODO: Count from sessions table
       responseRate: 100 // TODO: Calculate from actual data
     };
 

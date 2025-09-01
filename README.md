@@ -1,15 +1,14 @@
 # CoffeeChat
 
-A web platform designed to connect students within the Cornell community for peer-to-peer learning. Users can post requests to learn specific topics, offer to teach what they know, schedule one-on-one sessions, and rate their interactions.
+A web platform designed to connect students within the Cornell community for peer-to-peer learning. Users can post requests to learn specific topics, offer to teach what they know, message each other directly, and rate their interactions.
 
 ## Features
 
 - **User Authentication**: Cornell email login
 - **Post Management**: Create "Teach Me" and "I Can Teach" posts with tags and availability
 - **Search & Discovery**: Filter posts by type, subject, course codes, and availability
-- **Scheduling**: Calendar-based session scheduling with confirmation flows
-- **Messaging**: Direct messaging between matched users
-- **Rating System**: Rate and provide feedback after sessions
+- **Messaging**: Direct messaging between users to coordinate learning
+- **Rating System**: Rate and provide feedback after interactions
 
 ## Tech Stack
 

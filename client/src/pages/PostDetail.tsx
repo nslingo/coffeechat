@@ -1,9 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePost } from '../hooks/usePosts';
+import { authClient } from '../lib/auth-client';
 
 const PostDetail = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
+  const { data: session } = authClient.useSession();
   const { data: post, isLoading, error } = usePost(postId!);
 
   if (isLoading) {
@@ -45,8 +47,8 @@ const PostDetail = () => {
   };
 
   const handleSendMessage = () => {
-    // TODO: Implement messaging functionality
-    alert('Messaging feature coming soon!');
+    // Navigate to conversation with the post author
+    navigate(`/messages/${post.author.id}`);
   };
 
   return (
@@ -77,11 +79,6 @@ const PostDetail = () => {
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
                 {post.category.charAt(0) + post.category.slice(1).toLowerCase()}
               </span>
-              {!post.isActive && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                  Inactive
-                </span>
-              )}
             </div>
             <div className="text-sm text-gray-500">
               Posted {formatDate(post.createdAt)}
@@ -209,17 +206,41 @@ const PostDetail = () => {
               )}
 
               {/* Action Buttons */}
-              <div className="space-y-3">
-                <button 
-                  onClick={handleSendMessage}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  Send Message
-                </button>
-              </div>
+              {session?.user?.id !== post.author.id ? (
+                <div className="space-y-3">
+                  <button 
+                    onClick={handleSendMessage}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    Send Message
+                  </button>
+                  
+                  <button 
+                    onClick={() => navigate(`/users/${post.author.id}`)}
+                    className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    View Profile
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => navigate(`/posts/${post.id}/edit`)}
+                    className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center justify-center"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Post
+                  </button>
+                </div>
+              )}
 
               <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500 text-center">
                 Connect with {post.author.name} to coordinate your learning session!
@@ -237,12 +258,6 @@ const PostDetail = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Last updated</span>
                   <span className="text-gray-900">{formatDate(post.updatedAt)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <span className={`font-medium ${post.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                    {post.isActive ? 'Active' : 'Inactive'}
-                  </span>
                 </div>
               </div>
             </div>

@@ -91,7 +91,6 @@ model Post {
   subject      String             @db.VarChar(100)
   courseCode   String?            @db.VarChar(20)
   tags         String[]
-  isActive     Boolean            @default(true)
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
   authorId     String             @map("author_id")
@@ -103,7 +102,6 @@ model Post {
   @@index([subject])
   @@index([courseCode])
   @@index([authorId])
-  @@index([isActive])
   @@index([createdAt])
   @@map("posts")
 }

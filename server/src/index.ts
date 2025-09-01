@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { toNodeHandler } from 'better-auth/node';
@@ -6,6 +6,7 @@ import { auth } from './lib/auth.js';
 import { usersRouter } from './routes/users.js';
 import { postsRouter } from './routes/posts.js';
 import { messagesRouter } from './routes/messages.js';
+import { reviewsRouter } from './routes/reviews.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -24,28 +25,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', usersRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/messages', messagesRouter);
-
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', message: 'CoffeeChat API is running' });
-});
-
-app.get('/api', (_req, res) => {
-  res.json({
-    message: 'Welcome to CoffeeChat API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      users: '/api/users',
-      posts: '/api/posts',
-      messages: '/api/messages'
-    }
-  });
-});
+app.use('/api/reviews', reviewsRouter);
 
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📚 API documentation: http://localhost:${PORT}/api`);
+  console.log(`Server running on port ${PORT}`);
 });

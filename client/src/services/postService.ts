@@ -25,7 +25,6 @@ export interface Post {
   subject: string;
   courseCode?: string;
   tags: string[];
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
   authorId: string;
@@ -55,7 +54,6 @@ export interface UpdatePostData {
   subject?: string;
   courseCode?: string;
   tags?: string[];
-  isActive?: boolean;
   availability?: Array<{
     day: string;
     timeSlot: string;

@@ -29,7 +29,6 @@ const updatePostSchema = z.object({
   subject: z.string().min(1).max(100).optional(),
   courseCode: z.string().max(20).optional().or(z.literal('')),
   tags: z.array(z.string()).optional(),
-  isActive: z.boolean().optional(),
   availability: z.array(z.object({
     day: z.string().max(10),
     timeSlot: z.string().max(20)
@@ -60,9 +59,7 @@ router.get('/', requireAuth, async (req: any, res, next) => {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.PostWhereInput = {
-      isActive: true
-    };
+    const where: Prisma.PostWhereInput = {};
 
     if (type) where.type = type;
     if (category) where.category = category;
@@ -124,10 +121,7 @@ router.get('/:id', requireAuth, async (req: any, res, next) => {
     const { id } = req.params;
     
     const post = await prisma.post.findUnique({
-      where: { 
-        id,
-        isActive: true 
-      },
+      where: { id },
       include: {
         author: {
           select: {
@@ -254,7 +248,7 @@ router.put('/:id', requireAuth, async (req: any, res, next) => {
   }
 });
 
-// DELETE /api/posts/:id - Delete/deactivate post (authenticated, author only)
+// DELETE /api/posts/:id - Hard delete post (authenticated, author only)
 router.delete('/:id', requireAuth, async (req: any, res, next) => {
   try {
     const { id } = req.params;
@@ -262,7 +256,7 @@ router.delete('/:id', requireAuth, async (req: any, res, next) => {
     // Check if post exists and user is the author
     const existingPost = await prisma.post.findUnique({
       where: { id },
-      select: { authorId: true, isActive: true }
+      select: { authorId: true }
     });
 
     if (!existingPost) {
@@ -273,17 +267,12 @@ router.delete('/:id', requireAuth, async (req: any, res, next) => {
       return res.status(403).json({ error: 'You can only delete your own posts' });
     }
 
-    if (!existingPost.isActive) {
-      return res.status(400).json({ error: 'Post is already deactivated' });
-    }
-
-    // Soft delete by setting isActive to false
-    await prisma.post.update({
-      where: { id },
-      data: { isActive: false }
+    // Hard delete the post (cascading delete will handle availability)
+    await prisma.post.delete({
+      where: { id }
     });
 
-    res.json({ message: 'Post deactivated successfully' });
+    res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     return next(error);
   }

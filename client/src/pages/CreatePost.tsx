@@ -318,8 +318,7 @@ const CreatePost = () => {
               value={availabilityTime}
               onChange={(e) => setAvailabilityTime(e.target.value)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Format: 10:00am-1:00pm, 1:15-5:30pm, 9:30-11:00am (must specify am/pm)"
-              pattern="[0-9]{1,2}:[0-9]{2}(am|pm)-[0-9]{1,2}:[0-9]{2}(am|pm)"
+              placeholder="e.g. Morning, Evening, 2-4pm, After 6pm"
             />
             <button
               type="button"

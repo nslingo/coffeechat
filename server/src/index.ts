@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import { config } from './lib/config.js';
 import express from 'express';
 import cors from 'cors';
 import { toNodeHandler } from 'better-auth/node';
@@ -10,10 +10,10 @@ import { reviewsRouter } from './routes/reviews.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = config.server.port || 3001;
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: config.client.url || 'http://localhost:5173',
   credentials: true
 }));
 

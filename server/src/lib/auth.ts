@@ -2,18 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prisma } from './prisma.js';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { emailService } from './email.js';
-
-if (!process.env.BETTER_AUTH_SECRET) {
-  throw new Error("BETTER_AUTH_SECRET must be set")
-}
-
-if (!process.env.BETTER_AUTH_URL) {
-  throw new Error("BETTER_AUTH_URL must be set")
-}
-
-if (!process.env.CLIENT_URL) {
-  throw new Error("CLIENT_URL must be set")
-}
+import { config } from './config.js';
 
 interface VerificationData {
   user: {
@@ -77,9 +66,9 @@ export const auth = betterAuth({
       }
     }
   },
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL,
+  secret: config.betterAuth.secret,
+  baseURL: config.betterAuth.url,
   trustedOrigins: [
-    process.env.CLIENT_URL
+    config.client.url
   ]
 });

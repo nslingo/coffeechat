@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
+import { config } from '../lib/config.js';
 
 export class ApiError extends Error {
   public statusCode: number;
@@ -51,7 +52,7 @@ interface ErrorResponse {
 }
 
 const sanitizeErrorForLogging = (err: any) => {
-  if (process.env.NODE_ENV === 'production') {
+  if (config.server.nodeEnv === 'production') {
     return {
       message: err.message,
       name: err.name,
@@ -105,7 +106,7 @@ const normalizeError = (err: any): ApiError => {
   }
 
   // For unknown errors, don't expose internal details
-  const message = process.env.NODE_ENV === 'development' 
+  const message = config.server.nodeEnv === 'development' 
     ? err.message || 'Internal server error'
     : 'Internal server error';
 

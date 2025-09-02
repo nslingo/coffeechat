@@ -1,24 +1,5 @@
 import nodemailer from 'nodemailer';
-
-if (!process.env.SMTP_HOST) {
-  throw new Error("SMTP_HOST must be set");
-}
-
-if (!process.env.SMTP_PORT) {
-  throw new Error("SMTP_PORT must be set");
-}
-
-if (!process.env.SMTP_USER) {
-  throw new Error("SMTP_USER must be set");
-}
-
-if (!process.env.SMTP_PASS) {
-  throw new Error("SMTP_PASS must be set");
-}
-
-if (!process.env.SMTP_FROM) {
-  throw new Error("SMTP_FROM must be set");
-}
+import { config } from './config.js';
 
 interface EmailData {
   to: string;
@@ -37,19 +18,19 @@ class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT!),
-      secure: process.env.SMTP_SECURE === 'true',
+      host: config.smtp.host,
+      port: config.smtp.port,
+      secure: config.smtp.secure,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: config.smtp.user,
+        pass: config.smtp.pass,
       },
     });
   }
 
   async sendEmail(data: EmailData): Promise<void> {
     await this.transporter.sendMail({
-      from: `"CoffeeChat" <${process.env.SMTP_FROM}>`,
+      from: `"CoffeeChat" <${config.smtp.from}>`,
       to: data.to,
       subject: data.subject,
       text: data.text,
@@ -58,7 +39,7 @@ class EmailService {
   }
 
   async sendVerificationEmail(user: EmailUser, url: string): Promise<void> {
-    const callbackURL = `${process.env.CLIENT_URL}`;
+    const callbackURL = `${config.client.url}`;
     const modifiedUrl = url.replace('callbackURL=/', `callbackURL=${encodeURIComponent(callbackURL)}`);
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

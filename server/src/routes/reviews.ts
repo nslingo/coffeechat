@@ -44,7 +44,7 @@ router.post('/', requireAuth, async (req: any, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true
+            image: true
           }
         }
       }
@@ -106,7 +106,7 @@ router.get('/user/:userId', async (req, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true
+            image: true
           }
         }
       },
@@ -182,7 +182,7 @@ router.put('/:reviewId', requireAuth, async (req: any, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true
+            image: true
           }
         }
       }

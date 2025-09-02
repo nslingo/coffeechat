@@ -6,7 +6,7 @@ export interface User {
   email: string;
   name: string;
   bio?: string;
-  profilePicture?: string;
+  image?: string;
   averageRating: number;
   totalReviews: number;
   emailVerified: boolean;
@@ -24,7 +24,7 @@ export interface UserProfile extends User {
 
 export interface UpdateProfileData {
   bio?: string;
-  profilePicture?: string;
+  image?: string;
 }
 
 // User API functions

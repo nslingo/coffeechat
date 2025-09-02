@@ -10,7 +10,7 @@ declare global {
         name: string;
         emailVerified: boolean;
         bio?: string;
-        profilePicture?: string;
+        image?: string;
         averageRating: number;
         totalReviews: number;
       };

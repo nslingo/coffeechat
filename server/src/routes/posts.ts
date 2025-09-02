@@ -87,7 +87,7 @@ router.get('/', requireAuth, async (req: any, res, next) => {
             select: {
               id: true,
               name: true,
-              profilePicture: true,
+              image: true,
               averageRating: true,
               totalReviews: true
             }
@@ -127,7 +127,7 @@ router.get('/:id', requireAuth, async (req: any, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true,
+            image: true,
             averageRating: true,
             totalReviews: true,
             bio: true
@@ -173,7 +173,7 @@ router.post('/', requireAuth, async (req: any, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true,
+            image: true,
             averageRating: true,
             totalReviews: true
           }
@@ -230,7 +230,7 @@ router.put('/:id', requireAuth, async (req: any, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true,
+            image: true,
             averageRating: true,
             totalReviews: true
           }
@@ -315,7 +315,7 @@ router.get('/my/posts', requireAuth, async (req: any, res, next) => {
             select: {
               id: true,
               name: true,
-              profilePicture: true,
+              image: true,
               averageRating: true,
               totalReviews: true
             }

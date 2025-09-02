@@ -4,7 +4,7 @@ import { apiClient } from '../lib/api-client';
 export interface PostAuthor {
   id: string;
   name: string;
-  profilePicture?: string;
+  image?: string;
   averageRating: number;
   totalReviews: number;
   bio?: string;

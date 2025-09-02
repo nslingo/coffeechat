@@ -10,7 +10,7 @@ export interface Message {
   sender: {
     id: string;
     name: string;
-    profilePicture?: string;
+    image?: string;
   };
 }
 
@@ -30,7 +30,7 @@ export interface ConversationResponse {
   otherUser: {
     id: string;
     name: string;
-    profilePicture?: string;
+    image?: string;
   };
   pagination: {
     page: number;

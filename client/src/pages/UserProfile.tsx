@@ -127,9 +127,9 @@ const UserProfile: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-6">
             <div className="flex-shrink-0 mb-4 sm:mb-0">
-              {user.profilePicture ? (
+              {user.image ? (
                 <img
-                  src={user.profilePicture}
+                  src={user.image}
                   alt={user.name}
                   className="w-24 h-24 rounded-full object-cover mx-auto sm:mx-0"
                 />

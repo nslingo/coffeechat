@@ -8,11 +8,8 @@ const router = Router();
 
 const updateProfileSchema = z.object({
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
-  profilePicture: z.string().url('Must be a valid URL').optional().or(z.literal(''))
-}).transform((data) => ({
-  ...data,
-  profilePicture: data.profilePicture === '' ? null : data.profilePicture
-}));
+  image: z.string().url('Must be a valid URL').optional()
+});
 
 
 router.get('/profile', requireAuth, async (req: any, res, next) => {
@@ -24,7 +21,7 @@ router.get('/profile', requireAuth, async (req: any, res, next) => {
         email: true,
         name: true,
         bio: true,
-        profilePicture: true,
+        image: true,
         averageRating: true,
         totalReviews: true,
         createdAt: true,
@@ -65,7 +62,7 @@ router.put('/profile', requireAuth, async (req: any, res, next) => {
         email: true,
         name: true,
         bio: true,
-        profilePicture: true,
+        image: true,
         averageRating: true,
         totalReviews: true,
         createdAt: true,
@@ -92,7 +89,7 @@ router.get('/profile/:userId', async (req, res, next) => {
         id: true,
         name: true,
         bio: true,
-        profilePicture: true,
+        image: true,
         averageRating: true,
         totalReviews: true,
         createdAt: true

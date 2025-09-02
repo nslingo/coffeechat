@@ -152,9 +152,9 @@ const Conversation: React.FC = () => {
               onClick={() => navigate(`/users/${conversation.otherUser.id}`)}
               className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
             >
-              {conversation.otherUser.profilePicture ? (
+              {conversation.otherUser.image ? (
                 <img
-                  src={conversation.otherUser.profilePicture}
+                  src={conversation.otherUser.image}
                   alt={conversation.otherUser.name}
                   className="w-10 h-10 rounded-full object-cover"
                 />

@@ -13,7 +13,7 @@ const Profile = () => {
 
   const [editForm, setEditForm] = useState({
     bio: '',
-    profilePicture: '',
+    image: '',
   });
 
   // Initialize form when userProfile loads
@@ -21,7 +21,7 @@ const Profile = () => {
     if (userProfile && !isEditing) {
       setEditForm({
         bio: userProfile.bio || '',
-        profilePicture: userProfile.profilePicture || '',
+        image: userProfile.image || '',
       });
     }
   }, [userProfile, isEditing]);

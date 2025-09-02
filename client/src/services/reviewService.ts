@@ -11,7 +11,7 @@ export interface Review {
   reviewer: {
     id: string;
     name: string;
-    profilePicture?: string;
+    image?: string;
   };
 }
 

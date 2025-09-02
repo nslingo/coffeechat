@@ -215,9 +215,9 @@ const BrowsePosts = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                        {post.author.profilePicture ? (
+                        {post.author.image ? (
                           <img
-                            src={post.author.profilePicture}
+                            src={post.author.image}
                             alt={post.author.name}
                             className="w-8 h-8 rounded-full object-cover"
                           />

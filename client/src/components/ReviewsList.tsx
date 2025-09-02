@@ -150,9 +150,9 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ userId, showTitle = true }) =
             <div key={review.id} className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  {review.reviewer.profilePicture ? (
+                  {review.reviewer.image ? (
                     <img
-                      src={review.reviewer.profilePicture}
+                      src={review.reviewer.image}
                       alt={review.reviewer.name}
                       className="w-10 h-10 rounded-full object-cover"
                     />

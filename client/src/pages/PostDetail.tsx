@@ -169,9 +169,9 @@ const PostDetail = () => {
               
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                  {post.author.profilePicture ? (
+                  {post.author.image ? (
                     <img
-                      src={post.author.profilePicture}
+                      src={post.author.image}
                       alt={post.author.name}
                       className="w-12 h-12 rounded-full object-cover"
                     />

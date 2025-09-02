@@ -35,7 +35,7 @@ router.post('/', requireAuth, async (req: any, res, next) => {
           select: {
             id: true,
             name: true,
-            profilePicture: true
+            image: true
           }
         },
         recipient: {
@@ -99,14 +99,14 @@ router.get('/conversations', requireAuth, async (req: any, res, next) => {
               select: {
                 id: true,
                 name: true,
-                profilePicture: true
+                image: true
               }
             },
             recipient: {
               select: {
                 id: true,
                 name: true,
-                profilePicture: true
+                image: true
               }
             }
           },
@@ -123,7 +123,7 @@ router.get('/conversations', requireAuth, async (req: any, res, next) => {
         return {
           partnerId: partner.id,  // Make sure we use partner.id, not partnerId variable
           partnerName: partner.name,
-          partnerProfilePicture: partner.profilePicture,
+          partnerProfilePicture: partner.image,
           lastMessage: {
             content: latestMessage.content,
             createdAt: latestMessage.createdAt,
@@ -157,7 +157,7 @@ router.get('/conversations/:userId', requireAuth, async (req: any, res, next) =>
     // Verify the other user exists
     const otherUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, profilePicture: true }
+      select: { id: true, name: true, image: true }
     });
     
     if (!otherUser) {
@@ -177,7 +177,7 @@ router.get('/conversations/:userId', requireAuth, async (req: any, res, next) =>
           select: {
             id: true,
             name: true,
-            profilePicture: true
+            image: true
           }
         }
       },

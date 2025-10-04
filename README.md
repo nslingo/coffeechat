@@ -27,8 +27,7 @@ A web platform designed to connect students within the Cornell community for pee
 
 ### Deployment
 - Frontend: Vercel
-- Backend + Database: Render
-- CI/CD: GitHub Actions
+- Backend + Database: SupaBase
 
 ## Project Structure
 

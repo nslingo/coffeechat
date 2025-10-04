@@ -8,7 +8,7 @@ const router = Router();
 
 const updateProfileSchema = z.object({
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
-  image: z.string().url('Must be a valid URL').optional()
+  image: z.string().url('Must be a valid URL').optional().or(z.literal('').transform(() => undefined))
 });
 
 

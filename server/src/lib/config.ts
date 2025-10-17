@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-function getEnv(key: string): string {
+function getEnv(key: string) {
   const value = process.env[key];
   if (!value) throw new Error(`${key} must be set`);
   return value;

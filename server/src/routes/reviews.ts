@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, AuthRequest } from '../middleware/auth.js';
 import { Prisma } from '@prisma/client';
 
 const router = Router();
@@ -13,7 +13,7 @@ const createReviewSchema = z.object({
 });
 
 // Create a review
-router.post('/', requireAuth, async (req: any, res, next) => {
+router.post('/', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const validatedData = createReviewSchema.parse(req.body);
     
@@ -81,9 +81,9 @@ router.post('/', requireAuth, async (req: any, res, next) => {
 });
 
 // Get reviews for a user
-router.get('/user/:userId', async (req, res, next) => {
+router.get('/user/:userId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
     const offset = (page - 1) * limit;
@@ -151,9 +151,9 @@ router.get('/user/:userId', async (req, res, next) => {
 });
 
 // Update a review (only by the reviewer)
-router.put('/:reviewId', requireAuth, async (req: any, res, next) => {
+router.put('/:reviewId', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { reviewId } = req.params;
+    const reviewId = req.params.reviewId as string
     const updateData = createReviewSchema.omit({ revieweeId: true }).parse(req.body);
     
     // Find the review and verify ownership

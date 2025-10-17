@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { Prisma } from '@prisma/client';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, AuthRequest } from '../middleware/auth.js';
+import { Prisma } from '@prisma/client'
 
 const router = Router();
 
@@ -12,7 +12,7 @@ const updateProfileSchema = z.object({
 });
 
 
-router.get('/profile', requireAuth, async (req: any, res, next) => {
+router.get('/profile', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -50,13 +50,19 @@ router.get('/profile', requireAuth, async (req: any, res, next) => {
   }
 });
 
-router.put('/profile', requireAuth, async (req: any, res, next) => {
+router.put('/profile', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const validatedData = updateProfileSchema.parse(req.body) as Prisma.UserUpdateInput;
+    const validatedData = updateProfileSchema.parse(req.body);
+
+    const cleanedData = Object.fromEntries(
+      Object.entries(validatedData).filter(([, value]) => value !== undefined)
+    );
+
+    const updateData: Prisma.UserUpdateInput = cleanedData
     
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
-      data: validatedData,
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -79,9 +85,9 @@ router.put('/profile', requireAuth, async (req: any, res, next) => {
   }
 });
 
-router.get('/profile/:userId', async (req, res, next) => {
+router.get('/profile/:userId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string
     
     const user = await prisma.user.findUnique({
       where: { id: userId },

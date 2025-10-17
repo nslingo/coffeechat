@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -10,7 +10,7 @@ const sendMessageSchema = z.object({
   content: z.string().min(1, 'Message content is required').max(1000, 'Message must be less than 1000 characters')
 });
 
-router.post('/', requireAuth, async (req: any, res, next) => {
+router.post('/', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const validatedData = sendMessageSchema.parse(req.body);
     
@@ -56,7 +56,7 @@ router.post('/', requireAuth, async (req: any, res, next) => {
   }
 });
 
-router.get('/conversations', requireAuth, async (req: any, res, next) => {
+router.get('/conversations', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.id;
 
@@ -147,9 +147,9 @@ router.get('/conversations', requireAuth, async (req: any, res, next) => {
   }
 });
 
-router.get('/conversations/:userId', requireAuth, async (req: any, res, next) => {
+router.get('/conversations/:userId', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = (page - 1) * limit;

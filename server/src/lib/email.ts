@@ -1,18 +1,6 @@
 import nodemailer from 'nodemailer';
 import { config } from './config.js';
 
-interface EmailData {
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
-}
-
-interface EmailUser {
-  email: string;
-  name: string;
-};
-
 class EmailService {
   private transporter: nodemailer.Transporter;
 
@@ -28,7 +16,7 @@ class EmailService {
     });
   }
 
-  async sendEmail(data: EmailData): Promise<void> {
+  async sendEmail(data: { to: string; subject: string; text: string; html: string }) {
     await this.transporter.sendMail({
       from: `"CoffeeChat" <${config.smtp.from}>`,
       to: data.to,
@@ -38,22 +26,20 @@ class EmailService {
     });
   }
 
-  async sendVerificationEmail(user: EmailUser, url: string): Promise<void> {
-    const callbackURL = `${config.client.url}`;
-    const modifiedUrl = url.replace('callbackURL=/', `callbackURL=${encodeURIComponent(callbackURL)}`);
+  async sendVerificationEmail(user: { email: string; name: string }, url: string) {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1f2937;">Welcome to CoffeeChat!</h2>
         <p>Hi ${user.name}!</p>
         <p>Welcome to CoffeeChat! Click the button below to verify your Cornell email address:</p>
-        
+
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${modifiedUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          <a href="${url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             Verify Email Address
           </a>
         </div>
-        
-        <p>Or copy and paste this link in your browser: <a href="${modifiedUrl}">${modifiedUrl}</a></p>
+
+        <p>Or copy and paste this link in your browser: <a href="${url}">${url}</a></p>
         
         <div style="background-color: #fef3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
           <p style="margin: 0; font-size: 14px;"><strong>⚠️ Can't find this email?</strong></p>
@@ -76,7 +62,7 @@ class EmailService {
 Hi ${user.name}!
 
 Welcome to CoffeeChat! Click the link below to verify your Cornell email address:
-${modifiedUrl}
+${url}
 
 ⚠️ Can't find this email?
 1. Check your Junk/Spam folder
@@ -97,7 +83,7 @@ The CoffeeChat Team
     });
   }
 
-  async sendPasswordResetEmail(user: EmailUser, url: string): Promise<void> {
+  async sendPasswordResetEmail(user: { email: string; name: string }, url: string) {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1f2937;">Reset Your Password</h2>

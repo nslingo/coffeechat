@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { PostType, PostCategory, Prisma } from '@prisma/client';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -51,8 +51,73 @@ const searchPostsSchema = z.object({
 });
 
 
+// GET /api/posts/my/posts - Get current user's posts (authenticated)
+router.get('/my/posts', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const params = searchPostsSchema.parse(req.query);
+    const { type, category, subject, courseCode, tags, search, page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    // Build where clause for user's posts
+    const where: Prisma.PostWhereInput = {
+      authorId: req.user.id
+    };
+
+    if (type) where.type = type;
+    if (category) where.category = category;
+    if (subject) where.subject = { contains: subject, mode: 'insensitive' };
+    if (courseCode) where.courseCode = { contains: courseCode, mode: 'insensitive' };
+
+    if (tags) {
+      const tagArray = tags.split(',').map(tag => tag.trim());
+      where.tags = { hasSome: tagArray };
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              averageRating: true,
+              totalReviews: true
+            }
+          },
+          availability: true
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.post.count({ where })
+    ]);
+
+    res.json({
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // GET /api/posts - Search and filter posts (public with optional auth)
-router.get('/', requireAuth, async (req: any, res, next) => {
+router.get('/', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const params = searchPostsSchema.parse(req.query);
     const { type, category, subject, courseCode, tags, search, page, limit, authorId } = params;
@@ -116,9 +181,9 @@ router.get('/', requireAuth, async (req: any, res, next) => {
 });
 
 // GET /api/posts/:id - Get single post (public)
-router.get('/:id', requireAuth, async (req: any, res, next) => {
+router.get('/:id', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string
     
     const post = await prisma.post.findUnique({
       where: { id },
@@ -148,7 +213,7 @@ router.get('/:id', requireAuth, async (req: any, res, next) => {
 });
 
 // POST /api/posts - Create new post (authenticated)
-router.post('/', requireAuth, async (req: any, res, next) => {
+router.post('/', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const validatedData = createPostSchema.parse(req.body);
     const { availability, ...postData } = validatedData;
@@ -192,11 +257,15 @@ router.post('/', requireAuth, async (req: any, res, next) => {
 });
 
 // PUT /api/posts/:id - Update post (authenticated, author only)
-router.put('/:id', requireAuth, async (req: any, res, next) => {
+router.put('/:id', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string
     const validatedData = updatePostSchema.parse(req.body);
     const { availability, ...postData } = validatedData;
+
+    const cleanData = Object.fromEntries(
+      Object.entries(validatedData).filter(([, value]) => value !== undefined)
+    );
 
     // Check if post exists and user is the author
     const existingPost = await prisma.post.findUnique({
@@ -212,7 +281,7 @@ router.put('/:id', requireAuth, async (req: any, res, next) => {
       return res.status(403).json({ error: 'You can only edit your own posts' });
     }
 
-    const updateData: any = { ...postData };
+    const updateData: Prisma.PostUpdateInput = cleanData;
 
     // Handle availability updates if provided
     if (availability !== undefined) {
@@ -249,9 +318,9 @@ router.put('/:id', requireAuth, async (req: any, res, next) => {
 });
 
 // DELETE /api/posts/:id - Hard delete post (authenticated, author only)
-router.delete('/:id', requireAuth, async (req: any, res, next) => {
+router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string
 
     // Check if post exists and user is the author
     const existingPost = await prisma.post.findUnique({
@@ -273,71 +342,6 @@ router.delete('/:id', requireAuth, async (req: any, res, next) => {
     });
 
     res.json({ message: 'Post deleted successfully' });
-  } catch (error) {
-    return next(error);
-  }
-});
-
-// GET /api/posts/my/posts - Get current user's posts (authenticated)
-router.get('/my/posts', requireAuth, async (req: any, res, next) => {
-  try {
-    const params = searchPostsSchema.parse(req.query);
-    const { type, category, subject, courseCode, tags, search, page, limit } = params;
-    const skip = (page - 1) * limit;
-
-    // Build where clause for user's posts
-    const where: Prisma.PostWhereInput = {
-      authorId: req.user.id
-    };
-
-    if (type) where.type = type;
-    if (category) where.category = category;
-    if (subject) where.subject = { contains: subject, mode: 'insensitive' };
-    if (courseCode) where.courseCode = { contains: courseCode, mode: 'insensitive' };
-    
-    if (tags) {
-      const tagArray = tags.split(',').map(tag => tag.trim());
-      where.tags = { hasSome: tagArray };
-    }
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ];
-    }
-
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              averageRating: true,
-              totalReviews: true
-            }
-          },
-          availability: true
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit
-      }),
-      prisma.post.count({ where })
-    ]);
-
-    res.json({
-      posts,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
   } catch (error) {
     return next(error);
   }

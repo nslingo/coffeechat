@@ -4,17 +4,6 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { emailService } from './email.js';
 import { config } from './config.js';
 
-interface VerificationData {
-  user: {
-    email: string;
-    name: string;
-  };
-  url: string;
-  token: string;
-}
-
-const isCornellEmail = (email: string): boolean => email.toLowerCase().endsWith('@cornell.edu');
-
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -23,23 +12,23 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     autoSignIn: false,
-    sendResetPassword: async ({user, url, token: _token}: VerificationData, _request?: Request): Promise<void> => {
+    sendResetPassword: async ({user, url, token: _token}, _request) => {
       try {
         await emailService.sendPasswordResetEmail(user, url);
-      } catch (error: unknown) {
+      } catch (error) {
         throw new Error("Unable to send password reset email");
       }
     }
   },
   emailVerification: {
-    sendOnSignUp: true,
-    sendVerificationEmail: async ({user, url, token: _token}: VerificationData, _request?: Request): Promise<void> => {
+    sendOnSignUp: false,
+    sendVerificationEmail: async ({user, url, token: _token}, _request) => {
       try {
-        if (!isCornellEmail(user.email)) {
+        if (!user.email.toLowerCase().endsWith('@cornell.edu')) {
           throw new Error('Registration is limited to Cornell University email addresses (@cornell.edu)');
         }
         await emailService.sendVerificationEmail(user, url);
-      } catch (error: unknown) {
+      } catch (error) {
         throw new Error("Unable to send verification email");
       }
     },
@@ -51,18 +40,21 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       bio: {
-        type: 'string', 
-        required: false
+        type: 'string',
+        required: false,
+        input: true // Users can set their own bio
       },
       averageRating: {
         type: 'number',
         required: false,
-        defaultValue: 0
+        defaultValue: 0,
+        input: false // Calculated field, not user input
       },
       totalReviews: {
         type: 'number',
         required: false,
-        defaultValue: 0
+        defaultValue: 0,
+        input: false // Calculated field, not user input
       }
     }
   },

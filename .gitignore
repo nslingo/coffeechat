@@ -75,6 +75,3 @@ Thumbs.db
 # Temporary files
 .tmp/
 temp/
-
-# Claude Code specific
-CLAUDE.md

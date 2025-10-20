@@ -7,26 +7,42 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setMessage('');
 
     try {
-      const { data, error } = await authClient.signIn.email({
+      await authClient.signIn.email({
         email: email.trim(),
         password: password,
         rememberMe: true,
+      }, {
+        onSuccess: () => {
+          navigate('/dashboard');
+        },
+        onError: async (ctx) => {
+          if (ctx.error.status === 403) {
+            // Email not verified - send a new verification email
+            setError('Please verify your email address before signing in.');
+            try {
+              await authClient.sendVerificationEmail({
+                email: email.trim(),
+                callbackURL: '/login'
+              });
+              setMessage('A verification email has been sent to your inbox. Please check your email.');
+            } catch (emailErr) {
+              console.error('Failed to resend verification email:', emailErr);
+            }
+          } else {
+            setError(ctx.error.message || 'Sign in failed');
+          }
+        }
       });
-
-      if (error) {
-        setError(error.message || 'Sign in failed');
-      } else {
-        // Success! Redirect to dashboard
-        navigate('/dashboard');
-      }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Auth error:', err);
@@ -52,7 +68,13 @@ const Login = () => {
             {error}
           </div>
         )}
-        
+
+        {message && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
+            {message}
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>

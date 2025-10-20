@@ -44,7 +44,7 @@ function App() {
   </div>
   )
 
-  const isAuthenticated = !!session;
+  const isAuthenticated = !!session && session.user?.emailVerified;
   const userName = session?.user?.name || '';
 
   const router = createBrowserRouter([

@@ -16,22 +16,41 @@ const Signup = () => {
     setError('');
     setMessage('');
 
-    try {
-      const { data, error } = await authClient.signUp.email({
-        name: name.trim(),
-        email: email.trim(),
-        password: password,
-      });
+    const currentEmail = email.trim();
 
-      if (error) {
-        setError(error.message || 'Sign up failed');
-      } else {
-        setMessage('Account created! Please check your Cornell email to verify your account.');
-      }
+    try {
+      await authClient.signUp.email({
+        name: name.trim(),
+        email: currentEmail,
+        password: password,
+      }, {
+        onSuccess: async () => {
+          // Success - now send verification email
+          try {
+            await authClient.sendVerificationEmail({
+              email: currentEmail,
+              callbackURL: '/login'
+            });
+            setMessage('Account created! Please check your Cornell email to verify your account.');
+            // Clear form on success
+            setName('');
+            setEmail('');
+            setPassword('');
+          } catch (emailErr) {
+            console.error('Failed to send verification email:', emailErr);
+            setError('Account created but failed to send verification email. Please try logging in to resend.');
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        onError: (ctx) => {
+          setError(ctx.error.message || 'Sign up failed');
+          setIsLoading(false);
+        }
+      });
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Auth error:', err);
-    } finally {
       setIsLoading(false);
     }
   };

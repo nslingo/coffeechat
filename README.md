@@ -21,13 +21,9 @@ A web platform designed to connect students within the Cornell community for pee
 ### Backend
 - Node.js + Express.js
 - PostgreSQL with Prisma ORM
-- JWT authentication (BetterAuth)
+- BetterAuth Session Management
 - Zod for validation
 - Nodemailer for email notifications
-
-### Deployment
-- Frontend: Vercel
-- Backend + Database: SupaBase
 
 ## Project Structure
 

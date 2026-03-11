@@ -4,22 +4,24 @@ A web platform designed to connect students within the Cornell community for pee
 
 ## Features
 
-- **User Authentication**: Cornell email login
-- **Post Management**: Create "Teach Me" and "I Can Teach" posts with tags and availability
-- **Search & Discovery**: Filter posts by type, subject, course codes, and availability
+- **User authentication**: Cornell email login with required verification
+- **Post management**: Create "Teach Me" and "I Can Teach" posts with tags and availability
 - **Messaging**: Direct messaging between users to coordinate learning
-- **Rating System**: Rate and provide feedback after interactions
+- **Rating system**: Rate and provide feedback after interactions
+- **Search and discovery**: Filter posts by type, subject, course codes, and availability
 
 ## Tech Stack
 
 ### Frontend
-- React + TypeScript
+- TypeScript
+- React
 - Tailwind CSS
 - React Router
-- Axios / React Query
+- Axios + React Query
 
 ### Backend
-- Node.js + Express.js
+- Node.js
+- Express
 - PostgreSQL with Prisma ORM
 - BetterAuth Session Management
 - Zod for validation
@@ -30,5 +32,30 @@ A web platform designed to connect students within the Cornell community for pee
 ```
 coffeechat/
 ├── client/          # Frontend React application
-├── server/          # Backend Node.js API
+├── server/          # Backend Express API
+```
+
+## Installation
+
+```bash
+git clone https://github.com/nslingo/coffeechat.git
+cd coffeechat
+cd client && npm install
+cd ../server && npm install
+```
+
+Create a `server/.env` file using `server/.env.example` as a reference.
+
+## Usage
+
+In one terminal:
+
+```bash
+cd server && npm run dev
+```
+
+In another terminal:
+
+```bash
+cd client && npm run dev
 ```

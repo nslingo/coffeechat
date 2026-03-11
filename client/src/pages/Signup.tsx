@@ -25,23 +25,11 @@ const Signup = () => {
         password: password,
       }, {
         onSuccess: async () => {
-          // Success - now send verification email
-          try {
-            await authClient.sendVerificationEmail({
-              email: currentEmail,
-              callbackURL: '/login'
-            });
-            setMessage('Account created! Please check your Cornell email to verify your account.');
-            // Clear form on success
-            setName('');
-            setEmail('');
-            setPassword('');
-          } catch (emailErr) {
-            console.error('Failed to send verification email:', emailErr);
-            setError('Account created but failed to send verification email. Please try logging in to resend.');
-          } finally {
-            setIsLoading(false);
-          }
+          setMessage('Account created! Please check your Cornell email to verify your account.');
+          setName('');
+          setEmail('');
+          setPassword('');
+          setIsLoading(false);
         },
         onError: (ctx) => {
           setError(ctx.error.message || 'Sign up failed');

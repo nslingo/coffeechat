@@ -60,87 +60,41 @@ router.get('/conversations', requireAuth, async (req: AuthRequest, res: Response
   try {
     const userId = req.user.id;
 
-    // Get all messages involving the current user and extract unique partner IDs
     const allMessages = await prisma.message.findMany({
       where: {
-        OR: [
-          { senderId: userId },
-          { recipientId: userId }
-        ]
+        OR: [{ senderId: userId }, { recipientId: userId }]
       },
-      select: {
-        senderId: true,
-        recipientId: true
-      }
+      include: {
+        sender: { select: { id: true, name: true, image: true } },
+        recipient: { select: { id: true, name: true, image: true } }
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
-    // Extract unique partner IDs (ensuring we don't include the current user)
-    const partnerIds = new Set<string>();
-    allMessages.forEach(message => {
-      const partnerId = message.senderId === userId ? message.recipientId : message.senderId;
-      if (partnerId !== userId) {
-        partnerIds.add(partnerId);
-      }
+    // Keep only the latest message per partner (messages are already sorted desc)
+    const seen = new Map<string, typeof allMessages[0]>();
+    for (const msg of allMessages) {
+      const partnerId = msg.senderId === userId ? msg.recipientId : msg.senderId;
+      if (!seen.has(partnerId)) seen.set(partnerId, msg);
+    }
+
+    const conversations = Array.from(seen.values()).map(msg => {
+      const partner = msg.senderId === userId ? msg.recipient : msg.sender;
+      return {
+        partnerId: partner.id,
+        partnerName: partner.name,
+        partnerProfilePicture: partner.image,
+        lastMessage: {
+          content: msg.content,
+          createdAt: msg.createdAt,
+          senderId: msg.senderId
+        }
+      };
     });
-
-    // Get the latest message for each partner
-    const conversations = await Promise.all(
-      Array.from(partnerIds).map(async (partnerId) => {
-        // Get the latest message between current user and this partner
-        const latestMessage = await prisma.message.findFirst({
-          where: {
-            OR: [
-              { senderId: userId, recipientId: partnerId },
-              { senderId: partnerId, recipientId: userId }
-            ]
-          },
-          include: {
-            sender: {
-              select: {
-                id: true,
-                name: true,
-                image: true
-              }
-            },
-            recipient: {
-              select: {
-                id: true,
-                name: true,
-                image: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' }
-        });
-
-        if (!latestMessage) return null;
-
-        // The partner is always the user who is NOT the current user
-        const partner = latestMessage.senderId === userId 
-          ? latestMessage.recipient 
-          : latestMessage.sender;
-
-        return {
-          partnerId: partner.id,  // Make sure we use partner.id, not partnerId variable
-          partnerName: partner.name,
-          partnerProfilePicture: partner.image,
-          lastMessage: {
-            content: latestMessage.content,
-            createdAt: latestMessage.createdAt,
-            senderId: latestMessage.senderId
-          }
-        };
-      })
-    );
-
-    // Filter out null results and sort by latest message time
-    const validConversations = conversations
-      .filter(conv => conv !== null)
-      .sort((a, b) => new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime());
 
     res.json({
       message: 'Conversations retrieved successfully',
-      data: { conversations: validConversations }
+      data: { conversations }
     });
   } catch (error) {
     next(error);

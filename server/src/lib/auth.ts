@@ -21,13 +21,16 @@ export const auth = betterAuth({
     }
   },
   emailVerification: {
-    sendOnSignUp: false,
+    sendOnSignUp: true,
+    callbackURL: `${config.client.url}/login`,
     sendVerificationEmail: async ({user, url, token: _token}, _request) => {
+      if (!user.email.toLowerCase().endsWith('@cornell.edu')) {
+        throw new Error('Registration is limited to Cornell University email addresses (@cornell.edu)');
+      }
       try {
-        if (!user.email.toLowerCase().endsWith('@cornell.edu')) {
-          throw new Error('Registration is limited to Cornell University email addresses (@cornell.edu)');
-        }
-        await emailService.sendVerificationEmail(user, url);
+        const verificationUrl = new URL(url);
+        verificationUrl.searchParams.set('callbackURL', `${config.client.url}/login`);
+        await emailService.sendVerificationEmail(user, verificationUrl.toString());
       } catch (error) {
         throw new Error("Unable to send verification email");
       }

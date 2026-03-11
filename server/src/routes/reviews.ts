@@ -31,38 +31,37 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response, next: Next
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // Create the review (will fail if duplicate due to unique constraint)
-    const review = await prisma.review.create({
-      data: {
-        reviewerId: req.user.id,
-        revieweeId: validatedData.revieweeId,
-        rating: validatedData.rating,
-        feedback: validatedData.feedback ?? null,
-      },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            name: true,
-            image: true
+    // Create review and recalculate average atomically
+    const { review } = await prisma.$transaction(async (tx) => {
+      const review = await tx.review.create({
+        data: {
+          reviewerId: req.user.id,
+          revieweeId: validatedData.revieweeId,
+          rating: validatedData.rating,
+          feedback: validatedData.feedback ?? null,
+        },
+        include: {
+          reviewer: {
+            select: { id: true, name: true, image: true }
           }
         }
-      }
-    });
-    
-    // Update the reviewee's average rating
-    const stats = await prisma.review.aggregate({
-      where: { revieweeId: validatedData.revieweeId },
-      _avg: { rating: true },
-      _count: { rating: true }
-    });
-    
-    await prisma.user.update({
-      where: { id: validatedData.revieweeId },
-      data: {
-        averageRating: stats._avg.rating || 0,
-        totalReviews: stats._count.rating || 0
-      }
+      });
+
+      const stats = await tx.review.aggregate({
+        where: { revieweeId: validatedData.revieweeId },
+        _avg: { rating: true },
+        _count: { rating: true }
+      });
+
+      await tx.user.update({
+        where: { id: validatedData.revieweeId },
+        data: {
+          averageRating: stats._avg.rating ?? 0,
+          totalReviews: stats._count.rating ?? 0
+        }
+      });
+
+      return { review };
     });
     
     res.status(201).json({
@@ -170,37 +169,36 @@ router.put('/:reviewId', requireAuth, async (req: AuthRequest, res: Response, ne
       return res.status(403).json({ error: 'Can only update your own reviews' });
     }
     
-    // Update the review
-    const updatedReview = await prisma.review.update({
-      where: { id: reviewId },
-      data: {
-        rating: updateData.rating,
-        feedback: updateData.feedback ?? null,
-      },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            name: true,
-            image: true
+    // Update review and recalculate average atomically
+    const { updatedReview } = await prisma.$transaction(async (tx) => {
+      const updatedReview = await tx.review.update({
+        where: { id: reviewId },
+        data: {
+          rating: updateData.rating,
+          feedback: updateData.feedback ?? null,
+        },
+        include: {
+          reviewer: {
+            select: { id: true, name: true, image: true }
           }
         }
-      }
-    });
-    
-    // Recalculate the reviewee's average rating
-    const stats = await prisma.review.aggregate({
-      where: { revieweeId: existingReview.revieweeId },
-      _avg: { rating: true },
-      _count: { rating: true }
-    });
-    
-    await prisma.user.update({
-      where: { id: existingReview.revieweeId },
-      data: {
-        averageRating: stats._avg.rating || 0,
-        totalReviews: stats._count.rating || 0
-      }
+      });
+
+      const stats = await tx.review.aggregate({
+        where: { revieweeId: existingReview.revieweeId },
+        _avg: { rating: true },
+        _count: { rating: true }
+      });
+
+      await tx.user.update({
+        where: { id: existingReview.revieweeId },
+        data: {
+          averageRating: stats._avg.rating ?? 0,
+          totalReviews: stats._count.rating ?? 0
+        }
+      });
+
+      return { updatedReview };
     });
     
     res.json({
